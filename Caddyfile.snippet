@@ -1,0 +1,29 @@
+# =========================================================
+# LUIOFFICE — /etc/caddy/Caddyfile 맨 아래에 이 블록만 append 하세요.
+# 기존 사이트(bingo-seven.com:3000, xn--2e0bk93e.com:3002,
+# kakaoticket.shop:9000, livingforest.shop:9001)는 그대로 두면 됩니다.
+#
+# pm2 앱(server.js)이 127.0.0.1:9002 로 떠 있고,
+# Caddy 가 그 앞단에서 받는 구조입니다.
+# =========================================================
+
+
+# ── (A) 도메인이 있는 경우 · 권장 (자동 HTTPS) ─────────────
+# luioffice.co.kr 부분을 실제 도메인으로 바꿔주세요.
+luioffice.co.kr {
+	encode gzip
+	reverse_proxy 127.0.0.1:9002
+}
+
+
+# ── (B) 기존 사이트들처럼 "도메인:포트" 로 붙이는 경우 ──────
+# 위 (A) 대신 아래 형태를 쓰세요. (둘 중 하나만!)
+#
+# your-domain.com:9002 {
+# 	encode gzip
+# 	reverse_proxy 127.0.0.1:9002
+# }
+#
+# ※ 주의: 이 경우 공개 포트(9002)와 pm2 내부 포트가 같으면 충돌합니다.
+#   그럴 땐 ecosystem.config.cjs 의 PORT 를 9102 등으로 바꾸고
+#   reverse_proxy 127.0.0.1:9102 로 맞춰주세요.

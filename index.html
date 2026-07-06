@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LUIOFFICE · 루이오피스 — 명품 패션 & 디자인 가구</title>
+<meta name="description" content="루이오피스(LUIOFFICE) — 명품 패션과 디자인 가구를 한 곳에서. 정품 검수를 마친 큐레이션 부티크.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<main>
+  <!-- HERO -->
+  <section class="hero" style="padding:0">
+    <div class="hero-inner">
+      <div class="reveal">
+        <span class="eyebrow">Maison de Luxe · Since 2025</span>
+        <h1>입는 명품과<br><em>사는</em> 명품,<br>한 공간에서.</h1>
+        <p>루이오피스는 세계적인 패션 하우스와 디자인 가구를 정품 검수 후 엄선해 제안합니다. 당신의 하루를 완성하는 오브제를 만나보세요.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <a class="btn green" href="shop.html?cat=fashion">명품 패션 보기</a>
+          <a class="btn ghost" href="shop.html?cat=home">디자인 가구 보기</a>
+        </div>
+        <div class="hero-badges">
+          <div><strong>100%</strong><span>정품 보증</span></div>
+          <div><strong>20+</strong><span>글로벌 메종</span></div>
+          <div><strong>무료</strong><span>컨시어지 배송</span></div>
+        </div>
+      </div>
+      <div class="hero-art reveal" id="heroArt"></div>
+    </div>
+  </section>
+
+  <!-- CATEGORY CIRCLES + CTA -->
+  <section class="wrap" style="padding-top:66px">
+    <div class="circles" id="circles"></div>
+    <div class="cta-blocks">
+      <a class="cta-block a" href="shop.html?sort=new"><h4>신상품 입고</h4><p>이번 주 새로 도착한 큐레이션</p><span class="arw">→</span></a>
+      <a class="cta-block b" href="index.html#service"><h4>케어 서비스</h4><p>명품 클리닝 · 복원 · 보관</p><span class="arw">→</span></a>
+      <a class="cta-block c" href="index.html#service"><h4>프라이빗 컨시어지</h4><p>1:1 방문 상담 예약</p><span class="arw">→</span></a>
+    </div>
+  </section>
+
+  <!-- NEW UPDATE / FEATURED -->
+  <section class="wrap">
+    <div class="count-head">
+      <div>
+        <span class="eyebrow">Today's Curation</span>
+        <h2 class="serif" style="font-size:clamp(2rem,4.5vw,3rem);margin-top:8px">새롭게 큐레이션한<br>이번 주의 오브제</h2>
+      </div>
+      <div class="big-num" id="prodCount">20<sub>개 컬렉션</sub></div>
+    </div>
+    <div class="grid" id="featuredGrid"></div>
+    <div style="text-align:center;margin-top:44px">
+      <a class="btn ghost" href="shop.html">전체 컬렉션 보기</a>
+    </div>
+  </section>
+
+  <!-- CATEGORY SPLIT -->
+  <section class="wrap" style="padding-top:20px">
+    <div class="cats">
+      <a class="cat-card reveal" href="shop.html?cat=fashion">
+        <div class="cat-svg" id="catFashion"></div>
+        <div class="cat-body">
+          <span class="eyebrow" style="color:#e7d9b8">Fashion Maison</span>
+          <h3>명품 패션</h3>
+          <p>에르메스, 샤넬, 루이비통 — 시대를 넘어 사랑받는 아이코닉 피스.</p>
+          <span class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.6)">컬렉션 보기 →</span>
+        </div>
+      </a>
+      <a class="cat-card reveal" href="shop.html?cat=home">
+        <div class="cat-svg" id="catHome"></div>
+        <div class="cat-body">
+          <span class="eyebrow" style="color:#e7d9b8">Design Furniture</span>
+          <h3>디자인 가구</h3>
+          <p>임스, B&B 이탈리아, 프리츠 한센 — 공간을 완성하는 디자인 클래식.</p>
+          <span class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.6)">컬렉션 보기 →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- EDITORIAL -->
+  <section class="editorial" id="editorial">
+    <div class="wrap">
+      <div class="ed-art reveal" id="edArt"></div>
+      <div class="reveal">
+        <span class="eyebrow" style="color:#d8c79a">The Luioffice Standard</span>
+        <h2>진품, 그 이상의<br>확신을 큐레이션합니다.</h2>
+        <p>모든 상품은 전문 감정사의 다단계 검수를 거칩니다. 소재의 상태, 봉제, 시리얼까지 확인한 뒤에야 루이오피스의 이름으로 제안합니다.</p>
+        <a class="btn ghost" href="shop.html">큐레이션 만나보기</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="services" id="service">
+    <div class="wrap">
+      <div class="service"><div class="s-ico">✦</div><h4>정품 감정</h4><p>전문 감정사의 다단계 검수를 통과한 상품만 판매합니다.</p></div>
+      <div class="service"><div class="s-ico">✦</div><h4>컨시어지 배송</h4><p>5백만원 이상 구매 시 안전 포장 무료 방문 배송.</p></div>
+      <div class="service"><div class="s-ico">✦</div><h4>케어 서비스</h4><p>명품 클리닝, 가죽 복원, 가구 유지 관리를 지원합니다.</p></div>
+      <div class="service"><div class="s-ico">✦</div><h4>1:1 컨시어지</h4><p>대치동 쇼룸 방문 및 프라이빗 상담을 예약하세요.</p></div>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
+  <section class="news">
+    <div class="wrap">
+      <span class="eyebrow">Private List</span>
+      <h2 class="serif">먼저 만나는 신상품 소식</h2>
+      <p>새로운 입고와 프라이빗 세일 소식을 가장 먼저 받아보세요.</p>
+      <form onsubmit="event.preventDefault(); window.LUIO.toast('구독이 완료되었습니다. 감사합니다.'); this.reset();">
+        <input type="email" placeholder="이메일 주소" required>
+        <button class="btn green" type="submit">구독</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<!-- PROMO ENTRY POPUP -->
+<div class="promo-overlay" data-promo>
+  <div class="promo">
+    <div class="promo-art" data-promoov>
+      <span class="eyebrow">Welcome Offer</span>
+      <h3>첫 방문 감사<br>5% 웰컴 쿠폰</h3>
+      <p>회원가입하고 첫 구매에 사용하세요.</p>
+      <a class="btn gold sm" style="margin-top:16px;align-self:flex-start" data-promocta href="#" onclick="window.LUIO.openAuth('signup');return false;">가입하고 받기</a>
+    </div>
+    <div class="promo-foot">
+      <label><input type="checkbox" data-promohide> 오늘 하루 보지 않기</label>
+      <button data-promoclose>닫기</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/products.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  // hero + editorial + category art (reuse product art palettes)
+  document.getElementById('heroArt').innerHTML = renderArt({id:'hero',brand:'Hermès',name:'Birkin',glyph:'bag',pal:'camel'},800,1000);
+  document.getElementById('edArt').innerHTML = renderArt({id:'ed',brand:'Herman Miller',name:'Eames',glyph:'lounge',pal:'wine'},800,600);
+  document.getElementById('catFashion').innerHTML = renderArt({id:'cf',brand:'Chanel',name:'',glyph:'coat',pal:'ink'},700,900);
+  document.getElementById('catHome').innerHTML = renderArt({id:'ch',brand:'B&B Italia',name:'',glyph:'sofa',pal:'sand'},700,900);
+
+  // category circles
+  const cats = [
+    {t:'가방', g:'bag', h:'shop.html?sub=핸드백'},
+    {t:'아우터', g:'coat', h:'shop.html?sub=아우터'},
+    {t:'니트', g:'knit', h:'shop.html?sub=니트'},
+    {t:'슈즈', g:'shoe', h:'shop.html?sub=슈즈'},
+    {t:'아이웨어', g:'sunglass', h:'shop.html?sub=아이웨어'},
+    {t:'소파', g:'sofa', h:'shop.html?sub=소파'},
+    {t:'체어', g:'lounge', h:'shop.html?cat=home'},
+    {t:'조명', g:'lamp', h:'shop.html?sub=조명'},
+    {t:'수납', g:'cabinet', h:'shop.html?sub=수납'},
+    {t:'전체', g:'all', h:'shop.html'}
+  ];
+  document.getElementById('circles').innerHTML = cats.map(c=>{
+    const inner = c.g==='all'
+      ? '<span style="font-family:var(--serif);font-size:.8rem;letter-spacing:.1em">ALL</span>'
+      : `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${GLYPH[c.g]}</svg>`;
+    return `<a class="circle" href="${c.h}"><span class="disc ${c.g==='all'?'all':''}">${inner}</span><span>${c.t}</span></a>`;
+  }).join('');
+
+  // featured products
+  const feat = PRODUCTS.slice(0,4).concat(PRODUCTS.slice(10,14));
+  document.getElementById('prodCount').innerHTML = PRODUCTS.length + '<sub>개 컬렉션</sub>';
+  const grid = document.getElementById('featuredGrid');
+  grid.innerHTML = feat.map(renderCard).join('');
+  wireCards(grid);
+
+  // re-run reveal for injected .cat-card
+  document.querySelectorAll('.cat-card.reveal').forEach(el=>el.classList.add('in'));
+});
+</script>
+</body>
+</html>

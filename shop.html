@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>컬렉션 · LUIOFFICE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<main>
+  <div class="page-hero">
+    <div class="wrap">
+      <div class="crumb">HOME / <span id="crumb">SHOP</span></div>
+      <h1 id="pageTitle">전체 컬렉션</h1>
+      <p id="pageSub">정품 검수를 마친 루이오피스의 큐레이션.</p>
+    </div>
+  </div>
+
+  <section class="wrap">
+    <div class="shop-layout">
+      <aside class="side">
+        <h4>카테고리</h4>
+        <ul id="catNav"></ul>
+        <h4>브랜드</h4>
+        <ul id="brandNav"></ul>
+      </aside>
+
+      <div>
+        <form class="searchbar" id="shopSearch">
+          <input type="text" id="qInput" placeholder="브랜드, 상품명 검색" autocomplete="off">
+          <button class="btn green sm" type="submit">검색</button>
+        </form>
+        <div class="shop-top">
+          <span class="res" id="resCount"></span>
+          <select id="sortSel">
+            <option value="feat">추천순</option>
+            <option value="new">신상품순</option>
+            <option value="low">낮은 가격순</option>
+            <option value="high">높은 가격순</option>
+          </select>
+        </div>
+        <div class="grid" id="shopGrid"></div>
+        <div class="empty-state" id="emptyState" style="display:none">
+          <p>조건에 맞는 상품이 없습니다.</p>
+          <a class="btn ghost sm" href="shop.html" style="margin-top:16px">전체 보기</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="assets/js/products.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const params = new URLSearchParams(location.search);
+  let state = {
+    cat: params.get('cat') || 'all',
+    sub: params.get('sub') || '',
+    brand: params.get('brand') || '',
+    q: params.get('q') || '',
+    sort: params.get('sort') || 'feat'
+  };
+  if(params.get('sort')==='new') document.getElementById('sortSel').value='new';
+  document.getElementById('qInput').value = state.q;
+
+  const CAT_LABEL = {all:'전체 컬렉션', fashion:'명품 패션', home:'디자인 가구'};
+
+  // build side nav
+  function buildSide(){
+    const cats = [
+      {k:'all', t:'전체'}, {k:'fashion', t:'명품 패션'}, {k:'home', t:'디자인 가구'}
+    ];
+    document.getElementById('catNav').innerHTML = cats.map(c=>{
+      const n = c.k==='all'?PRODUCTS.length:PRODUCTS.filter(p=>p.cat===c.k).length;
+      return `<li><a href="shop.html?cat=${c.k}" class="${state.cat===c.k&&!state.sub&&!state.brand?'active':''}">${c.t}<span class="n">${n}</span></a></li>`;
+    }).join('');
+    const brands = [...new Set(PRODUCTS.map(p=>p.brand))].sort();
+    document.getElementById('brandNav').innerHTML = brands.map(b=>{
+      const n = PRODUCTS.filter(p=>p.brand===b).length;
+      return `<li><a href="shop.html?brand=${encodeURIComponent(b)}" class="${state.brand===b?'active':''}">${b}<span class="n">${n}</span></a></li>`;
+    }).join('');
+  }
+
+  function apply(){
+    let list = PRODUCTS.slice();
+    if(state.cat!=='all') list = list.filter(p=>p.cat===state.cat);
+    if(state.sub) list = list.filter(p=>p.sub===state.sub);
+    if(state.brand) list = list.filter(p=>p.brand===state.brand);
+    if(state.q){
+      const s = state.q.toLowerCase();
+      list = list.filter(p=>(p.brand+' '+p.name+' '+p.sub).toLowerCase().includes(s));
+    }
+    const sort = document.getElementById('sortSel').value;
+    if(sort==='low') list.sort((a,b)=>a.price-b.price);
+    else if(sort==='high') list.sort((a,b)=>b.price-a.price);
+    else if(sort==='new') list.sort((a,b)=>(b.tag==='NEW')-(a.tag==='NEW'));
+
+    // title
+    let title = CAT_LABEL[state.cat] || '전체 컬렉션';
+    if(state.brand) title = state.brand;
+    if(state.sub) title = state.sub;
+    if(state.q) title = `"${state.q}" 검색 결과`;
+    document.getElementById('pageTitle').textContent = title;
+    document.getElementById('crumb').textContent = title.toUpperCase();
+    document.getElementById('resCount').textContent = `${list.length}개의 상품`;
+
+    const grid = document.getElementById('shopGrid');
+    const empty = document.getElementById('emptyState');
+    if(!list.length){ grid.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+    grid.innerHTML = list.map(renderCard).join('');
+    wireCards(grid);
+  }
+
+  document.getElementById('sortSel').addEventListener('change', apply);
+  document.getElementById('shopSearch').addEventListener('submit', e=>{
+    e.preventDefault();
+    state.q = document.getElementById('qInput').value.trim();
+    state.cat='all'; state.sub=''; state.brand='';
+    buildSide(); apply();
+  });
+
+  buildSide();
+  apply();
+});
+</script>
+</body>
+</html>

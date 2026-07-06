@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>마이 부티크 · LUIOFFICE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<main>
+  <div class="page-hero"><div class="wrap"><div class="crumb">HOME / MY BOUTIQUE</div><h1>마이 부티크</h1></div></div>
+  <section class="wrap" id="acctRoot"></section>
+</main>
+
+<script src="assets/js/products.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+function renderAccount(){
+  const root = document.getElementById('acctRoot');
+  const user = window.LUIO.Auth.current();
+  if(!user){
+    root.innerHTML = `<div class="empty-state">
+      <p style="font-size:1.1rem">로그인 후 이용할 수 있습니다.</p>
+      <div style="margin-top:20px;display:flex;gap:12px;justify-content:center">
+        <button class="btn green" onclick="window.LUIO.openAuth('login')">로그인</button>
+        <button class="btn ghost" onclick="window.LUIO.openAuth('signup')">회원가입</button>
+      </div></div>`;
+    return;
+  }
+  const tab = new URLSearchParams(location.search).get('tab') || 'orders';
+  const orders = window.LUIO.Orders.all();
+  const wish = window.LUIO.Wish.all().map(byId).filter(Boolean);
+  const spent = orders.reduce((s,o)=>s+o.total,0);
+
+  root.innerHTML = `
+  <div class="acct">
+    <aside class="acct-side">
+      <div class="who">${user.name}님</div>
+      <div class="mail">${user.email}</div>
+      <nav id="acctNav">
+        <button data-tab="orders" class="${tab==='orders'?'active':''}">주문 내역</button>
+        <button data-tab="wish" class="${tab==='wish'?'active':''}">찜한 상품</button>
+        <button data-tab="profile" class="${tab==='profile'?'active':''}">회원 정보</button>
+        <button data-logout>로그아웃</button>
+      </nav>
+    </aside>
+    <div class="acct-panel">
+      <div class="stat-row">
+        <div class="stat"><b>${orders.length}</b><span>주문</span></div>
+        <div class="stat"><b>${wish.length}</b><span>찜</span></div>
+        <div class="stat"><b>${won(spent)}</b><span>누적 주문액</span></div>
+      </div>
+      <div id="tabBody"></div>
+    </div>
+  </div>`;
+
+  function drawTab(t){
+    const body = document.getElementById('tabBody');
+    if(t==='orders'){
+      body.innerHTML = orders.length ? orders.map(o=>`
+        <div class="order-card">
+          <div class="oc-head"><span>주문번호 ${o.no} · ${new Date(o.date).toLocaleDateString('ko-KR')}</span><span class="st">${o.status}</span></div>
+          ${o.items.map(i=>{const p=byId(i.id);return `<div class="oc-item"><div class="oi-thumb">${renderArt(p,52,66)}</div><div style="flex:1"><div style="font-size:.7rem;letter-spacing:.1em;color:var(--gold-deep)">${p.brand}</div><div style="font-family:var(--serif)">${p.name}</div></div><div style="font-size:.86rem">×${i.qty} · ${won(p.price*i.qty)}</div></div>`;}).join('')}
+          <div style="text-align:right;border-top:1px solid var(--line);margin-top:10px;padding-top:10px;font-family:var(--serif);font-size:1.1rem">합계 ${won(o.total)}</div>
+        </div>`).join('') : `<div class="empty-state"><p>주문 내역이 없습니다.</p><a class="btn green" href="shop.html" style="margin-top:16px">쇼핑하러 가기</a></div>`;
+    } else if(t==='wish'){
+      if(!wish.length){ body.innerHTML = `<div class="empty-state"><p>찜한 상품이 없습니다.</p><a class="btn green" href="shop.html" style="margin-top:16px">상품 둘러보기</a></div>`; }
+      else { body.innerHTML = `<div class="grid">${wish.map(renderCard).join('')}</div>`; wireCards(body); }
+    } else {
+      body.innerHTML = `
+        <div class="co-section" style="max-width:480px">
+          <h3>회원 정보</h3>
+          <div class="field"><label>이름</label><input value="${user.name}" disabled></div>
+          <div class="field"><label>이메일</label><input value="${user.email}" disabled></div>
+          <p class="muted" style="font-size:.8rem">데모 버전에서는 회원 정보 수정이 제공되지 않습니다.</p>
+        </div>`;
+    }
+  }
+  drawTab(tab);
+
+  document.querySelectorAll('#acctNav [data-tab]').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('#acctNav button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); drawTab(b.dataset.tab);
+  });
+  document.querySelector('[data-logout]').onclick=()=>{
+    window.LUIO.Auth.logout(); window.LUIO.sync(); window.LUIO.toast('로그아웃되었습니다.'); renderAccount();
+  };
+}
+document.addEventListener('DOMContentLoaded', renderAccount);
+document.addEventListener('luio:sync', ()=>{ /* keep header in sync */ });
+</script>
+</body>
+</html>

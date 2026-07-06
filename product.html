@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>상품 상세 · LUIOFFICE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<main>
+  <section class="wrap" style="padding-top:44px" id="pdpRoot">
+    <!-- filled by JS -->
+  </section>
+
+  <section class="wrap" style="padding-top:10px">
+    <div class="section-head"><div><span class="eyebrow">You may also like</span><h2 class="serif" style="font-size:1.9rem;margin-top:6px">함께 보면 좋은 컬렉션</h2></div></div>
+    <div class="grid" id="relGrid"></div>
+  </section>
+</main>
+
+<script src="assets/js/products.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const id = new URLSearchParams(location.search).get('id');
+  const p = byId(id);
+  const root = document.getElementById('pdpRoot');
+  if(!p){ root.innerHTML = '<div class="empty-state"><p>상품을 찾을 수 없습니다.</p><a class="btn ghost sm" href="shop.html" style="margin-top:16px">전체 컬렉션</a></div>'; return; }
+  document.title = `${p.brand} ${p.name} · LUIOFFICE`;
+
+  let qty = 1;
+  const wished = window.LUIO.Wish.has(p.id);
+  root.innerHTML = `
+    <div class="crumb"><a href="shop.html?cat=${p.cat}">${p.cat==='fashion'?'명품 패션':'디자인 가구'}</a> / ${p.sub}</div>
+    <div class="pdp">
+      <div class="pdp-media">${renderArt(p,800,1000)}</div>
+      <div class="pdp-info">
+        <div class="brand-name">${p.brand}</div>
+        <h1>${p.name}</h1>
+        <div class="price">${won(p.price)}</div>
+        <p class="desc">${makeDesc(p)}</p>
+        <ul class="spec">
+          <li><b>카테고리</b><span>${p.cat==='fashion'?'명품 패션':'디자인 가구'} · ${p.sub}</span></li>
+          <li><b>브랜드</b><span>${p.brand}</span></li>
+          <li><b>정품 검수</b><span>루이오피스 전문 감정 완료</span></li>
+          <li><b>배송</b><span>안전 포장 컨시어지 배송 (5백만원 이상 무료)</span></li>
+        </ul>
+        <div class="qty" id="qtyBox">
+          <button data-q="-1">–</button><span id="qtyVal">1</span><button data-q="1">+</button>
+        </div>
+        <div class="pdp-actions">
+          <button class="btn green" id="addBtn">쇼핑백에 담기</button>
+          <button class="btn" id="buyBtn">바로 구매</button>
+          <button class="wish-btn ${wished?'active':''}" id="wishBtn" aria-label="찜">${wished?window.LUIO.I.heartF:window.LUIO.I.heart}</button>
+        </div>
+        <p class="muted" style="font-size:.78rem;margin-top:16px">※ 본 사이트는 데모이며 실제 결제는 진행되지 않습니다.</p>
+      </div>
+    </div>`;
+
+  root.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click', ()=>{
+    qty = Math.max(1, qty + parseInt(b.dataset.q,10));
+    document.getElementById('qtyVal').textContent = qty;
+  }));
+  document.getElementById('addBtn').addEventListener('click', ()=> window.LUIO.addToCart(p.id, qty));
+  document.getElementById('buyBtn').addEventListener('click', ()=>{
+    window.LUIO.Cart.add(p.id, qty); location.href='checkout.html';
+  });
+  document.getElementById('wishBtn').addEventListener('click', e=>{
+    const on = window.LUIO.toggleWish(p.id);
+    e.currentTarget.classList.toggle('active', on);
+    e.currentTarget.innerHTML = on ? window.LUIO.I.heartF : window.LUIO.I.heart;
+  });
+
+  // related
+  const rel = PRODUCTS.filter(x=>x.cat===p.cat && x.id!==p.id).slice(0,4);
+  const rg = document.getElementById('relGrid');
+  rg.innerHTML = rel.map(renderCard).join('');
+  wireCards(rg);
+});
+</script>
+</body>
+</html>
