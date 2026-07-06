@@ -55,7 +55,7 @@
 <script src="assets/js/products.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener('luio:ready', async ()=>{
   const params = new URLSearchParams(location.search);
   let state = {
     cat: params.get('cat') || 'all',
@@ -69,37 +69,31 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   const CAT_LABEL = {all:'전체 컬렉션', fashion:'명품 패션', home:'디자인 가구'};
 
-  // build side nav
+  // 전체 상품 1회 로드 → 사이드 카운트 계산용
+  const all = (await window.LUIO.api('/products')).products;
+
   function buildSide(){
-    const cats = [
-      {k:'all', t:'전체'}, {k:'fashion', t:'명품 패션'}, {k:'home', t:'디자인 가구'}
-    ];
+    const cats = [{k:'all', t:'전체'}, {k:'fashion', t:'명품 패션'}, {k:'home', t:'디자인 가구'}];
     document.getElementById('catNav').innerHTML = cats.map(c=>{
-      const n = c.k==='all'?PRODUCTS.length:PRODUCTS.filter(p=>p.cat===c.k).length;
-      return `<li><a href="shop.html?cat=${c.k}" class="${state.cat===c.k&&!state.sub&&!state.brand?'active':''}">${c.t}<span class="n">${n}</span></a></li>`;
+      const n = c.k==='all'?all.length:all.filter(p=>p.cat===c.k).length;
+      return `<li><a href="shop.html?cat=${c.k}" class="${state.cat===c.k&&!state.sub&&!state.brand&&!state.q?'active':''}">${c.t}<span class="n">${n}</span></a></li>`;
     }).join('');
-    const brands = [...new Set(PRODUCTS.map(p=>p.brand))].sort();
+    const brands = [...new Set(all.map(p=>p.brand))].sort();
     document.getElementById('brandNav').innerHTML = brands.map(b=>{
-      const n = PRODUCTS.filter(p=>p.brand===b).length;
+      const n = all.filter(p=>p.brand===b).length;
       return `<li><a href="shop.html?brand=${encodeURIComponent(b)}" class="${state.brand===b?'active':''}">${b}<span class="n">${n}</span></a></li>`;
     }).join('');
   }
 
-  function apply(){
-    let list = PRODUCTS.slice();
-    if(state.cat!=='all') list = list.filter(p=>p.cat===state.cat);
-    if(state.sub) list = list.filter(p=>p.sub===state.sub);
-    if(state.brand) list = list.filter(p=>p.brand===state.brand);
-    if(state.q){
-      const s = state.q.toLowerCase();
-      list = list.filter(p=>(p.brand+' '+p.name+' '+p.sub).toLowerCase().includes(s));
-    }
-    const sort = document.getElementById('sortSel').value;
-    if(sort==='low') list.sort((a,b)=>a.price-b.price);
-    else if(sort==='high') list.sort((a,b)=>b.price-a.price);
-    else if(sort==='new') list.sort((a,b)=>(b.tag==='NEW')-(a.tag==='NEW'));
+  async function apply(){
+    const query = new URLSearchParams();
+    if(state.cat && state.cat!=='all') query.set('cat', state.cat);
+    if(state.sub) query.set('sub', state.sub);
+    if(state.brand) query.set('brand', state.brand);
+    if(state.q) query.set('q', state.q);
+    query.set('sort', document.getElementById('sortSel').value);
+    const {products:list} = await window.LUIO.api('/products?' + query.toString());
 
-    // title
     let title = CAT_LABEL[state.cat] || '전체 컬렉션';
     if(state.brand) title = state.brand;
     if(state.sub) title = state.sub;

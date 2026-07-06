@@ -18,23 +18,21 @@
 <script src="assets/js/products.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-function drawCart(){
+async function drawCart(){
   const root = document.getElementById('cartRoot');
-  const items = window.LUIO.Cart.all();
-  if(!items.length){
+  const d = await window.LUIO.api('/cart');
+  if(!d.items.length){
     root.innerHTML = `<div class="empty-state"><p style="font-size:1.1rem">쇼핑백이 비어 있습니다.</p><a class="btn green" href="shop.html" style="margin-top:20px">쇼핑 계속하기</a></div>`;
-    return;
+    window.LUIO.refreshCart(); return;
   }
-  const total = window.LUIO.Cart.total();
-  const ship = total>=5000000 ? 0 : 50000;
   root.innerHTML = `
     <div class="cart-layout">
       <div id="cartLines"></div>
       <div class="summary">
         <h3>주문 요약</h3>
-        <div class="row"><span>상품 합계</span><span>${won(total)}</span></div>
-        <div class="row"><span>배송비</span><span>${ship? won(ship) : '무료'}</span></div>
-        <div class="row total"><span>결제 예정 금액</span><b>${won(total+ship)}</b></div>
+        <div class="row"><span>상품 합계</span><span>${won(d.subtotal)}</span></div>
+        <div class="row"><span>배송비</span><span>${d.shipping? won(d.shipping) : '무료'}</span></div>
+        <div class="row total"><span>결제 예정 금액</span><b>${won(d.total)}</b></div>
         <a class="btn green block" href="checkout.html">주문하기</a>
         <button class="btn ghost block" style="margin-top:10px" id="clearBtn">쇼핑백 비우기</button>
         <p class="note">5백만원 이상 구매 시 컨시어지 배송 무료</p>
@@ -42,28 +40,30 @@ function drawCart(){
     </div>`;
 
   const lines = document.getElementById('cartLines');
-  lines.innerHTML = items.map(i=>{ const p=byId(i.id); if(!p) return '';
-    return `<div class="cart-line" data-line="${p.id}">
+  lines.innerHTML = d.items.map(p=>`<div class="cart-line" data-line="${p.id}">
       <a class="cl-thumb" href="product.html?id=${p.id}">${renderArt(p,96,120)}</a>
       <div>
         <div class="cl-brand">${p.brand}</div>
         <a class="cl-name" href="product.html?id=${p.id}">${p.name}</a>
         <div class="cl-qty">
-          <button data-dec="${p.id}">–</button><span>${i.qty}</span><button data-inc="${p.id}">+</button>
+          <button data-dec="${p.id}">–</button><span>${p.qty}</span><button data-inc="${p.id}">+</button>
         </div>
       </div>
       <div class="cl-right">
-        <div class="cl-price">${won(p.price*i.qty)}</div>
+        <div class="cl-price">${won(p.lineTotal)}</div>
         <button class="cl-remove" data-rem="${p.id}">삭제</button>
       </div>
-    </div>`; }).join('');
+    </div>`).join('');
 
-  lines.querySelectorAll('[data-inc]').forEach(b=>b.onclick=()=>{ const it=window.LUIO.Cart.all().find(x=>x.id===b.dataset.inc); window.LUIO.Cart.setQty(b.dataset.inc, it.qty+1); drawCart(); });
-  lines.querySelectorAll('[data-dec]').forEach(b=>b.onclick=()=>{ const it=window.LUIO.Cart.all().find(x=>x.id===b.dataset.dec); window.LUIO.Cart.setQty(b.dataset.dec, it.qty-1); drawCart(); });
-  lines.querySelectorAll('[data-rem]').forEach(b=>b.onclick=()=>{ window.LUIO.Cart.remove(b.dataset.rem); window.LUIO.toast('삭제되었습니다.'); drawCart(); });
-  document.getElementById('clearBtn').onclick=()=>{ window.LUIO.Cart.clear(); drawCart(); };
+  const upd = async (id, qty)=>{ await window.LUIO.api('/cart/'+id,{method:'PATCH',body:{qty}}); await window.LUIO.refreshCart(); drawCart(); };
+  d.items.forEach(p=>{
+    lines.querySelector(`[data-inc="${p.id}"]`).onclick=()=>upd(p.id, p.qty+1);
+    lines.querySelector(`[data-dec="${p.id}"]`).onclick=()=>upd(p.id, Math.max(1,p.qty-1));
+    lines.querySelector(`[data-rem="${p.id}"]`).onclick=async()=>{ await window.LUIO.api('/cart/'+p.id,{method:'DELETE'}); await window.LUIO.refreshCart(); window.LUIO.toast('삭제되었습니다.'); drawCart(); };
+  });
+  document.getElementById('clearBtn').onclick=async()=>{ await window.LUIO.api('/cart',{method:'DELETE'}); await window.LUIO.refreshCart(); drawCart(); };
 }
-document.addEventListener('DOMContentLoaded', drawCart);
+document.addEventListener('luio:ready', drawCart);
 </script>
 </body>
 </html>

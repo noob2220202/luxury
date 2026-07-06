@@ -24,15 +24,16 @@
 <script src="assets/js/products.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener('luio:ready', async ()=>{
   const id = new URLSearchParams(location.search).get('id');
-  const p = byId(id);
   const root = document.getElementById('pdpRoot');
+  let p;
+  try{ p = (await window.LUIO.api('/products/'+id)).product; }catch(e){}
   if(!p){ root.innerHTML = '<div class="empty-state"><p>상품을 찾을 수 없습니다.</p><a class="btn ghost sm" href="shop.html" style="margin-top:16px">전체 컬렉션</a></div>'; return; }
   document.title = `${p.brand} ${p.name} · LUIOFFICE`;
 
   let qty = 1;
-  const wished = window.LUIO.Wish.has(p.id);
+  const wished = window.LUIO.isWished(p.id);
   root.innerHTML = `
     <div class="crumb"><a href="shop.html?cat=${p.cat}">${p.cat==='fashion'?'명품 패션':'디자인 가구'}</a> / ${p.sub}</div>
     <div class="pdp">
@@ -65,19 +66,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('qtyVal').textContent = qty;
   }));
   document.getElementById('addBtn').addEventListener('click', ()=> window.LUIO.addToCart(p.id, qty));
-  document.getElementById('buyBtn').addEventListener('click', ()=>{
-    window.LUIO.Cart.add(p.id, qty); location.href='checkout.html';
+  document.getElementById('buyBtn').addEventListener('click', async ()=>{
+    await window.LUIO.api('/cart',{method:'POST',body:{productId:p.id,qty}});
+    location.href='checkout.html';
   });
-  document.getElementById('wishBtn').addEventListener('click', e=>{
-    const on = window.LUIO.toggleWish(p.id);
+  document.getElementById('wishBtn').addEventListener('click', async e=>{
+    const on = await window.LUIO.toggleWish(p.id);
+    if(on===null) return;
     e.currentTarget.classList.toggle('active', on);
     e.currentTarget.innerHTML = on ? window.LUIO.I.heartF : window.LUIO.I.heart;
   });
 
   // related
-  const rel = PRODUCTS.filter(x=>x.cat===p.cat && x.id!==p.id).slice(0,4);
+  const {products:rel} = await window.LUIO.api('/products?cat='+p.cat);
   const rg = document.getElementById('relGrid');
-  rg.innerHTML = rel.map(renderCard).join('');
+  rg.innerHTML = rel.filter(x=>x.id!==p.id).slice(0,4).map(renderCard).join('');
   wireCards(rg);
 });
 </script>

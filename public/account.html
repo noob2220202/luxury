@@ -18,9 +18,9 @@
 <script src="assets/js/products.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-function renderAccount(){
+async function renderAccount(){
   const root = document.getElementById('acctRoot');
-  const user = window.LUIO.Auth.current();
+  const user = window.LUIO.currentUser();
   if(!user){
     root.innerHTML = `<div class="empty-state">
       <p style="font-size:1.1rem">로그인 후 이용할 수 있습니다.</p>
@@ -31,8 +31,11 @@ function renderAccount(){
     return;
   }
   const tab = new URLSearchParams(location.search).get('tab') || 'orders';
-  const orders = window.LUIO.Orders.all();
-  const wish = window.LUIO.Wish.all().map(byId).filter(Boolean);
+  const [{orders}, wres] = await Promise.all([
+    window.LUIO.api('/orders'),
+    window.LUIO.api('/wishlist').catch(()=>({products:[]}))
+  ]);
+  const wish = wres.products || [];
   const spent = orders.reduce((s,o)=>s+o.total,0);
 
   root.innerHTML = `
@@ -44,6 +47,7 @@ function renderAccount(){
         <button data-tab="orders" class="${tab==='orders'?'active':''}">주문 내역</button>
         <button data-tab="wish" class="${tab==='wish'?'active':''}">찜한 상품</button>
         <button data-tab="profile" class="${tab==='profile'?'active':''}">회원 정보</button>
+        ${user.role==='admin' ? '<a href="admin.html" style="display:block;padding:11px 12px;border-radius:3px;font-size:.9rem;color:var(--green);font-weight:600">🛠 주문 관리(어드민)</a>' : ''}
         <button data-logout>로그아웃</button>
       </nav>
     </aside>
@@ -62,8 +66,8 @@ function renderAccount(){
     if(t==='orders'){
       body.innerHTML = orders.length ? orders.map(o=>`
         <div class="order-card">
-          <div class="oc-head"><span>주문번호 ${o.no} · ${new Date(o.date).toLocaleDateString('ko-KR')}</span><span class="st">${o.status}</span></div>
-          ${o.items.map(i=>{const p=byId(i.id);return `<div class="oc-item"><div class="oi-thumb">${renderArt(p,52,66)}</div><div style="flex:1"><div style="font-size:.7rem;letter-spacing:.1em;color:var(--gold-deep)">${p.brand}</div><div style="font-family:var(--serif)">${p.name}</div></div><div style="font-size:.86rem">×${i.qty} · ${won(p.price*i.qty)}</div></div>`;}).join('')}
+          <div class="oc-head"><span>주문번호 ${o.order_no} · ${new Date(o.created_at).toLocaleDateString('ko-KR')}</span><span class="st">${o.status}</span></div>
+          ${o.items.map(i=>`<div class="oc-item"><div class="oi-thumb">${renderArt({pal:'sand',glyph:'bag',brand:i.brand,name:i.name},52,66)}</div><div style="flex:1"><div style="font-size:.7rem;letter-spacing:.1em;color:var(--gold-deep)">${i.brand}</div><div style="font-family:var(--serif)">${i.name}</div></div><div style="font-size:.86rem">×${i.qty} · ${won(i.price*i.qty)}</div></div>`).join('')}
           <div style="text-align:right;border-top:1px solid var(--line);margin-top:10px;padding-top:10px;font-family:var(--serif);font-size:1.1rem">합계 ${won(o.total)}</div>
         </div>`).join('') : `<div class="empty-state"><p>주문 내역이 없습니다.</p><a class="btn green" href="shop.html" style="margin-top:16px">쇼핑하러 가기</a></div>`;
     } else if(t==='wish'){
@@ -85,12 +89,9 @@ function renderAccount(){
     document.querySelectorAll('#acctNav button').forEach(x=>x.classList.remove('active'));
     b.classList.add('active'); drawTab(b.dataset.tab);
   });
-  document.querySelector('[data-logout]').onclick=()=>{
-    window.LUIO.Auth.logout(); window.LUIO.sync(); window.LUIO.toast('로그아웃되었습니다.'); renderAccount();
-  };
+  document.querySelector('[data-logout]').onclick=async()=>{ await window.LUIO.logout(); renderAccount(); };
 }
-document.addEventListener('DOMContentLoaded', renderAccount);
-document.addEventListener('luio:sync', ()=>{ /* keep header in sync */ });
+document.addEventListener('luio:ready', renderAccount);
 </script>
 </body>
 </html>

@@ -1,15 +1,25 @@
 /* =========================================================
-   LUIOFFICE — client-side app (demo)
-   Everything runs in the browser on localStorage.
-   No backend, no payment — checkout stops before payment.
+   LUIOFFICE — client app (dynamic / API)
+   서버(Express + SQLite) API 와 통신. 결제 단계만 제외하고 동작.
    ========================================================= */
 (function(){
 'use strict';
 
-/* ---------- storage ---------- */
-const KEY = {users:'luio_users', session:'luio_session', cart:'luio_cart', wish:'luio_wish', orders:'luio_orders', promo:'luio_promo_hide'};
-const load = (k, def) => { try{ return JSON.parse(localStorage.getItem(k)) ?? def; }catch(e){ return def; } };
-const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+/* ---------- API ---------- */
+async function api(path, opts={}){
+  const res = await fetch('/api' + path, {
+    method: opts.method || 'GET',
+    headers: opts.body ? {'Content-Type':'application/json'} : {},
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+    credentials: 'same-origin'
+  });
+  let data = null; try{ data = await res.json(); }catch(e){}
+  if(!res.ok) throw new Error((data && data.error) || '요청을 처리하지 못했습니다.');
+  return data;
+}
+
+/* ---------- client state ---------- */
+const state = { user:null, cartCount:0, wishIds:new Set() };
 
 /* ---------- icons ---------- */
 const I = {
@@ -22,76 +32,12 @@ const I = {
   menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
 };
 
-/* ---------- auth ---------- */
-const Auth = {
-  current(){ return load(KEY.session, null); },
-  signup(name, email, pw){
-    const users = load(KEY.users, {});
-    email = email.trim().toLowerCase();
-    if(users[email]) throw new Error('이미 가입된 이메일입니다.');
-    users[email] = { name:name.trim(), email, pw, joined:Date.now() };
-    save(KEY.users, users);
-    save(KEY.session, { name:users[email].name, email });
-    return users[email];
-  },
-  login(email, pw){
-    const users = load(KEY.users, {});
-    email = email.trim().toLowerCase();
-    const u = users[email];
-    if(!u || u.pw !== pw) throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
-    save(KEY.session, { name:u.name, email });
-    return u;
-  },
-  logout(){ localStorage.removeItem(KEY.session); }
-};
-
-/* ---------- cart ---------- */
-const Cart = {
-  all(){ return load(KEY.cart, []); },
-  count(){ return Cart.all().reduce((s,i)=>s+i.qty,0); },
-  total(){ return Cart.all().reduce((s,i)=>{ const p=byId(i.id); return s + (p?p.price:0)*i.qty; },0); },
-  add(id, qty=1){
-    const c = Cart.all(); const row = c.find(i=>i.id===id);
-    if(row) row.qty += qty; else c.push({id, qty});
-    save(KEY.cart, c); sync();
-  },
-  setQty(id, qty){
-    let c = Cart.all(); const row = c.find(i=>i.id===id);
-    if(row){ row.qty = Math.max(1, qty); } save(KEY.cart, c); sync();
-  },
-  remove(id){ save(KEY.cart, Cart.all().filter(i=>i.id!==id)); sync(); },
-  clear(){ save(KEY.cart, []); sync(); }
-};
-
-/* ---------- wishlist ---------- */
-const Wish = {
-  all(){ return load(KEY.wish, []); },
-  has(id){ return Wish.all().includes(id); },
-  toggle(id){
-    let w = Wish.all();
-    if(w.includes(id)){ w = w.filter(x=>x!==id); } else { w.push(id); }
-    save(KEY.wish, w); sync(); return w.includes(id);
-  }
-};
-
-/* ---------- orders ---------- */
-const Orders = {
-  all(){ return load(KEY.orders, []); },
-  place(info){
-    const items = Cart.all().map(i=>({id:i.id, qty:i.qty}));
-    const order = {
-      no:'LO' + Date.now().toString().slice(-9),
-      date:Date.now(), items, total:Cart.total(), buyer:info, status:'결제 대기'
-    };
-    const list = Orders.all(); list.unshift(order); save(KEY.orders, list);
-    Cart.clear(); return order;
-  }
-};
-
-/* byId() and makeDesc() are defined globally in products.js */
+const q = (s,r=document)=>r.querySelector(s);
+const qa = (s,r=document)=>[...r.querySelectorAll(s)];
+function won(n){ return '₩' + Number(n).toLocaleString('ko-KR'); }
 
 /* =========================================================
-   Chrome injection
+   Chrome
    ========================================================= */
 const NAV = [
   {t:'신상품', h:'shop.html?sort=new'},
@@ -103,7 +49,6 @@ const NAV = [
 ];
 
 function buildHeader(){
-  const nav = NAV.map(n=>`<a href="${n.h}">${n.t}</a>`).join('');
   const half = Math.ceil(NAV.length/2);
   const left = NAV.slice(0,half).map(n=>`<a href="${n.h}">${n.t}</a>`).join('');
   const right = NAV.slice(half).map(n=>`<a href="${n.h}">${n.t}</a>`).join('');
@@ -130,14 +75,12 @@ function buildHeader(){
 function buildChrome(){
   const el = document.createElement('div');
   el.innerHTML = `
-  <!-- mobile menu -->
   <div class="m-menu" data-mmenu>
     <button class="m-close" data-mclose>&times;</button>
     ${NAV.map(n=>`<a href="${n.h}">${n.t}</a>`).join('')}
     <a href="account.html" data-account-link>마이 부티크</a>
   </div>
 
-  <!-- cart drawer -->
   <div class="drawer-overlay" data-drawerov></div>
   <aside class="drawer" data-drawer aria-label="cart">
     <div class="drawer-head"><h3>쇼핑백</h3><button data-drawerclose>&times;</button></div>
@@ -145,7 +88,6 @@ function buildChrome(){
     <div class="drawer-foot" data-drawerfoot></div>
   </aside>
 
-  <!-- auth modal -->
   <div class="modal-overlay" data-authmodal>
     <div class="modal">
       <div class="modal-head">
@@ -157,7 +99,6 @@ function buildChrome(){
     </div>
   </div>
 
-  <!-- search modal -->
   <div class="modal-overlay" data-searchmodal>
     <div class="modal">
       <div class="modal-head"><button class="m-x" data-searchclose>&times;</button><h3>검색</h3></div>
@@ -171,10 +112,8 @@ function buildChrome(){
     </div>
   </div>
 
-  <!-- toast -->
   <div class="toast" data-toast></div>
 
-  <!-- bottom nav -->
   <nav class="bottom-nav">
     <a href="index.html" data-bn="home">${I.home}<span>홈</span></a>
     <a href="#" data-search>${I.search}<span>검색</span></a>
@@ -195,32 +134,20 @@ function buildFooter(){
         <div class="fbrand">LUIOFFICE</div>
         <p style="margin-top:14px;max-width:34ch;color:#a99e86">명품 패션과 디자인 가구를 한 곳에서. 루이오피스는 정품 검수를 마친 큐레이션만을 제안합니다.</p>
       </div>
-      <div>
-        <h5>Shop</h5>
-        <ul>
-          <li><a href="shop.html?cat=fashion">명품 패션</a></li>
-          <li><a href="shop.html?cat=home">디자인 가구</a></li>
-          <li><a href="shop.html?sort=new">신상품</a></li>
-          <li><a href="shop.html">전체보기</a></li>
-        </ul>
-      </div>
-      <div>
-        <h5>Service</h5>
-        <ul>
-          <li><a href="index.html#service">컨시어지 배송</a></li>
-          <li><a href="index.html#service">정품 감정</a></li>
-          <li><a href="index.html#service">케어 서비스</a></li>
-          <li><a href="account.html">마이 부티크</a></li>
-        </ul>
-      </div>
-      <div>
-        <h5>Contact</h5>
-        <ul>
-          <li>평일 10:00 – 18:00</li>
-          <li><a href="mailto:care@luioffice.co.kr">care@luioffice.co.kr</a></li>
-          <li>02-000-0000</li>
-        </ul>
-      </div>
+      <div><h5>Shop</h5><ul>
+        <li><a href="shop.html?cat=fashion">명품 패션</a></li>
+        <li><a href="shop.html?cat=home">디자인 가구</a></li>
+        <li><a href="shop.html?sort=new">신상품</a></li>
+        <li><a href="shop.html">전체보기</a></li></ul></div>
+      <div><h5>Service</h5><ul>
+        <li><a href="index.html#service">컨시어지 배송</a></li>
+        <li><a href="index.html#service">정품 감정</a></li>
+        <li><a href="index.html#service">케어 서비스</a></li>
+        <li><a href="account.html">마이 부티크</a></li></ul></div>
+      <div><h5>Contact</h5><ul>
+        <li>평일 10:00 – 18:00</li>
+        <li><a href="mailto:care@luioffice.co.kr">care@luioffice.co.kr</a></li>
+        <li>02-000-0000</li></ul></div>
     </div>
     <div class="biz">
       <b>주식회사 루이오피스</b> (LUIOFFICE Inc.) &nbsp;|&nbsp; 대표 유성복<br>
@@ -239,19 +166,15 @@ function buildFooter(){
    Interactions
    ========================================================= */
 let authMode = 'login';
-
-function q(sel, root=document){ return root.querySelector(sel); }
-function qa(sel, root=document){ return [...root.querySelectorAll(sel)]; }
-
 function toast(msg){
   const t = q('[data-toast]'); if(!t) return;
   t.textContent = msg; t.classList.add('show');
   clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
+/* ---- auth modal ---- */
 function openAuth(mode){ authMode = mode||'login'; renderAuth(); q('[data-authmodal]').classList.add('open'); }
 function closeAuth(){ q('[data-authmodal]').classList.remove('open'); }
-
 function renderAuth(){
   const body = q('[data-authbody]');
   q('[data-auth-title]').textContent = authMode==='login' ? '로그인' : '회원가입';
@@ -263,6 +186,7 @@ function renderAuth(){
         <div class="field"><label>비밀번호</label><input type="password" name="pw" placeholder="••••••••" required><div class="err">비밀번호를 입력해 주세요.</div></div>
         <button class="btn green block" type="submit">로그인</button>
       </form>
+      <p class="muted" style="font-size:.78rem;text-align:center;margin-top:12px">데모 계정 · demo@luioffice.co.kr / demo1234</p>
       <div class="switch">아직 회원이 아니신가요? <a data-goto="signup">회원가입</a></div>`;
     q('[data-loginform]').addEventListener('submit', onLogin);
   } else {
@@ -279,81 +203,76 @@ function renderAuth(){
   }
   qa('[data-goto]', body.parentElement).forEach(a=>a.addEventListener('click', ()=>openAuth(a.dataset.goto)));
 }
-
-function markErr(input, on){ input.closest('.field').classList.toggle('invalid', on); }
-
-function onLogin(e){
-  e.preventDefault();
-  const f = e.target, email=f.email.value, pw=f.pw.value;
-  markErr(f.email, !/^\S+@\S+\.\S+$/.test(email));
-  markErr(f.pw, !pw);
+function markErr(input, on, msg){ const f=input.closest('.field'); f.classList.toggle('invalid', on); if(on&&msg) f.querySelector('.err').textContent=msg; }
+async function onLogin(e){
+  e.preventDefault(); const f=e.target, email=f.email.value, pw=f.pw.value;
+  markErr(f.email, !/^\S+@\S+\.\S+$/.test(email)); markErr(f.pw, !pw);
   if(!/^\S+@\S+\.\S+$/.test(email) || !pw) return;
-  try{ const u = Auth.login(email, pw); closeAuth(); sync(); toast(`${u.name}님, 다시 오신 것을 환영합니다.`); }
-  catch(err){ f.pw.closest('.field').classList.add('invalid'); f.pw.closest('.field').querySelector('.err').textContent = err.message; }
+  try{ const {user}=await api('/auth/login',{method:'POST',body:{email,pw:undefined,password:pw}}); state.user=user; closeAuth(); await refreshAll(); toast(`${user.name}님, 다시 오신 것을 환영합니다.`); afterAuth(); }
+  catch(err){ markErr(f.pw, true, err.message); }
 }
-
-function onSignup(e){
-  e.preventDefault();
-  const f = e.target, name=f.name.value.trim(), email=f.email.value, pw=f.pw.value;
+async function onSignup(e){
+  e.preventDefault(); const f=e.target, name=f.name.value.trim(), email=f.email.value, pw=f.pw.value;
   markErr(f.name, !name); markErr(f.email, !/^\S+@\S+\.\S+$/.test(email)); markErr(f.pw, pw.length<6);
   if(!name || !/^\S+@\S+\.\S+$/.test(email) || pw.length<6) return;
-  try{ const u = Auth.signup(name, email, pw); closeAuth(); sync(); toast(`${u.name}님, 루이오피스에 오신 것을 환영합니다.`); }
-  catch(err){ f.email.closest('.field').classList.add('invalid'); f.email.closest('.field').querySelector('.err').textContent = err.message; }
+  try{ const {user}=await api('/auth/signup',{method:'POST',body:{name,email,password:pw}}); state.user=user; closeAuth(); await refreshAll(); toast(`${user.name}님, 루이오피스에 오신 것을 환영합니다.`); afterAuth(); }
+  catch(err){ markErr(f.email, true, err.message); }
 }
+function afterAuth(){ document.dispatchEvent(new CustomEvent('luio:auth')); }
 
-/* cart drawer */
-function openDrawer(){ renderDrawer(); q('[data-drawer]').classList.add('open'); q('[data-drawerov]').classList.add('open'); }
+/* ---- cart drawer ---- */
+async function openDrawer(){ q('[data-drawer]').classList.add('open'); q('[data-drawerov]').classList.add('open'); await renderDrawer(); }
 function closeDrawer(){ q('[data-drawer]').classList.remove('open'); q('[data-drawerov]').classList.remove('open'); }
-
-function renderDrawer(){
-  const items = Cart.all();
-  const box = q('[data-draweritems]'), foot = q('[data-drawerfoot]');
-  if(!items.length){
+async function renderDrawer(){
+  const box=q('[data-draweritems]'), foot=q('[data-drawerfoot]');
+  box.innerHTML = '<p class="muted" style="padding:30px 0;text-align:center">불러오는 중…</p>';
+  const d = await api('/cart');
+  if(!d.items.length){
     box.innerHTML = `<div class="drawer-empty"><p>쇼핑백이 비어 있습니다.</p><a class="btn ghost sm" href="shop.html" style="margin-top:16px">쇼핑 계속하기</a></div>`;
-    foot.innerHTML = ''; return;
+    foot.innerHTML=''; return;
   }
-  box.innerHTML = items.map(i=>{ const p=byId(i.id); if(!p) return '';
-    return `<div class="d-item">
-      <div class="d-thumb">${window.renderArt(p,64,80)}</div>
+  box.innerHTML = d.items.map(p=>`<div class="d-item">
+      <div class="d-thumb">${renderArt(p,64,80)}</div>
       <div>
         <div class="d-brand">${p.brand}</div>
         <div class="d-name">${p.name}</div>
-        <div class="d-price">${window.won(p.price)} · 수량 ${i.qty}</div>
+        <div class="d-price">${won(p.price)} · 수량 ${p.qty}</div>
         <button class="d-remove" data-drem="${p.id}">삭제</button>
       </div>
-      <div style="text-align:right;font-size:.9rem">${window.won(p.price*i.qty)}</div>
-    </div>`; }).join('');
-  foot.innerHTML = `
-    <div class="row"><span>합계</span><b>${window.won(Cart.total())}</b></div>
+      <div style="text-align:right;font-size:.9rem">${won(p.lineTotal)}</div>
+    </div>`).join('');
+  foot.innerHTML = `<div class="row"><span>합계</span><b>${won(d.total)}</b></div>
     <a class="btn green block" href="cart.html">쇼핑백 보기 · 주문하기</a>`;
-  qa('[data-drem]', box).forEach(b=>b.addEventListener('click', ()=>{ Cart.remove(b.dataset.drem); renderDrawer(); toast('삭제되었습니다.'); }));
+  qa('[data-drem]',box).forEach(b=>b.addEventListener('click', async ()=>{ await api('/cart/'+b.dataset.drem,{method:'DELETE'}); await refreshCart(); await renderDrawer(); toast('삭제되었습니다.'); }));
 }
 
-/* search */
+/* ---- search ---- */
 function openSearch(){ q('[data-searchmodal]').classList.add('open'); setTimeout(()=>q('[data-searchform] input')?.focus(),120); }
 function closeSearch(){ q('[data-searchmodal]').classList.remove('open'); }
 
-/* promo popup */
+/* ---- promo ---- */
 function maybePromo(){
-  if(!q('[data-promo]')) return;
-  const hideUntil = load(KEY.promo, 0);
-  if(Date.now() < hideUntil){ q('[data-promo]').remove(); return; }
-  setTimeout(()=>q('[data-promo]')?.classList.add('open'), 700);
+  const promo=q('[data-promo]'); if(!promo) return;
+  const hideUntil = parseInt(localStorage.getItem('luio_promo_hide')||'0',10);
+  if(Date.now() < hideUntil){ promo.remove(); return; }
+  setTimeout(()=>promo.classList.add('open'), 700);
 }
 
 /* =========================================================
-   sync UI to state
+   state refresh
    ========================================================= */
-function sync(){
-  const n = Cart.count();
-  qa('[data-cartcount]').forEach(e=>{ e.textContent = n; e.style.visibility = n? 'visible':'hidden'; });
-  const u = Auth.current();
-  qa('[data-authlabel]').forEach(e=> e.textContent = u ? u.name : '로그인');
+async function refreshMe(){ try{ const {user}=await api('/auth/me'); state.user=user; }catch(e){ state.user=null; } }
+async function refreshCart(){ try{ const d=await api('/cart'); state.cartCount=d.count; }catch(e){} syncHeader(); }
+async function refreshWish(){ state.wishIds=new Set(); if(state.user){ try{ const {ids}=await api('/wishlist'); state.wishIds=new Set(ids); }catch(e){} } }
+async function refreshAll(){ await refreshMe(); await Promise.all([refreshCart(), refreshWish()]); syncHeader(); }
+function syncHeader(){
+  qa('[data-cartcount]').forEach(e=>{ e.textContent=state.cartCount; e.style.visibility=state.cartCount?'visible':'hidden'; });
+  qa('[data-authlabel]').forEach(e=> e.textContent = state.user ? state.user.name : '로그인');
   document.dispatchEvent(new CustomEvent('luio:sync'));
 }
 
 /* =========================================================
-   wire global events (delegation)
+   wire
    ========================================================= */
 function wire(){
   document.body.addEventListener('click', e=>{
@@ -366,59 +285,55 @@ function wire(){
     else if(t.matches('[data-drawerclose],[data-drawerov]')){ closeDrawer(); }
     else if(t.matches('[data-authclose]')){ closeAuth(); }
     else if(t.matches('[data-searchclose]')){ closeSearch(); }
-    else if(t.matches('[data-account]') || t.matches('[data-account-link]')){
-      e.preventDefault();
-      if(Auth.current()) location.href='account.html'; else openAuth('login');
-    }
+    else if(t.matches('[data-account],[data-account-link]')){ e.preventDefault(); if(state.user) location.href='account.html'; else openAuth('login'); }
   });
-  q('[data-searchform]')?.addEventListener('submit', e=>{
-    e.preventDefault();
-    const v = e.target.q.value.trim();
-    location.href = 'shop.html?q=' + encodeURIComponent(v);
-  });
+  q('[data-searchform]')?.addEventListener('submit', e=>{ e.preventDefault(); location.href='shop.html?q='+encodeURIComponent(e.target.q.value.trim()); });
   document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeDrawer(); closeAuth(); closeSearch(); q('[data-mmenu]')?.classList.remove('open'); } });
 }
 
 /* =========================================================
    public API
    ========================================================= */
-window.LUIO = { Auth, Cart, Wish, Orders, byId, makeDesc, toast, openAuth, openDrawer, sync,
-  addToCart(id, qty){ Cart.add(id, qty); openDrawer(); },
-  toggleWish(id){ const on = Wish.toggle(id); toast(on?'찜 목록에 담았습니다.':'찜을 해제했습니다.'); return on; },
-  requireAuth(){ if(Auth.current()) return true; openAuth('login'); toast('로그인이 필요합니다.'); return false; },
-  I
+window.LUIO = {
+  api, state, I, won, toast, openAuth, openDrawer,
+  isWished(id){ return state.wishIds.has(id); },
+  currentUser(){ return state.user; },
+  async logout(){ await api('/auth/logout',{method:'POST'}); state.user=null; await refreshAll(); toast('로그아웃되었습니다.'); },
+  async addToCart(id, qty=1){ try{ const d=await api('/cart',{method:'POST',body:{productId:id,qty}}); state.cartCount=d.count; syncHeader(); openDrawer(); }catch(e){ toast(e.message); } },
+  async toggleWish(id){
+    if(!state.user){ openAuth('login'); toast('찜은 로그인 후 이용할 수 있습니다.'); return null; }
+    try{ const {wished}=await api('/wishlist/'+id,{method:'POST'}); if(wished) state.wishIds.add(id); else state.wishIds.delete(id); toast(wished?'찜 목록에 담았습니다.':'찜을 해제했습니다.'); return wished; }
+    catch(e){ toast(e.message); return null; }
+  },
+  requireAuth(){ if(state.user) return true; openAuth('login'); toast('로그인이 필요합니다.'); return false; },
+  refreshAll, refreshCart, syncHeader
 };
 
-/* ---------- reveal on scroll ---------- */
+/* ---- reveal ---- */
 function reveals(){
-  const io = new IntersectionObserver((es)=>es.forEach(x=>{ if(x.isIntersecting){ x.target.classList.add('in'); io.unobserve(x.target); } }), {threshold:.12});
+  const io=new IntersectionObserver(es=>es.forEach(x=>{ if(x.isIntersecting){ x.target.classList.add('in'); io.unobserve(x.target); } }),{threshold:.12});
   qa('.reveal').forEach(el=>io.observe(el));
 }
 
-/* ---------- boot ---------- */
-document.addEventListener('DOMContentLoaded', ()=>{
-  // favicon (inline, no external request)
-  const fav = document.createElement('link');
-  fav.rel = 'icon';
-  fav.href = 'data:image/svg+xml,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%23123c2b"/><text x="32" y="44" font-family="Georgia,serif" font-size="34" fill="%23e7d9b8" text-anchor="middle">L</text></svg>');
+/* ---- boot ---- */
+document.addEventListener('DOMContentLoaded', async ()=>{
+  const fav=document.createElement('link'); fav.rel='icon';
+  fav.href='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%23123c2b"/><text x="32" y="44" font-family="Georgia,serif" font-size="34" fill="%23e7d9b8" text-anchor="middle">L</text></svg>');
   document.head.appendChild(fav);
-  buildHeader();
-  buildChrome();
-  buildFooter();
-  wire();
-  sync();
-  maybePromo();
-  reveals();
-  // promo hide handlers (promo markup lives in the page)
-  const promo = q('[data-promo]');
+
+  buildHeader(); buildChrome(); buildFooter(); wire();
+  await refreshAll();
+  maybePromo(); reveals();
+
+  const promo=q('[data-promo]');
   if(promo){
     promo.addEventListener('click', e=>{
       if(e.target.matches('[data-promoclose],[data-promoov]')) promo.classList.remove('open');
-      if(e.target.matches('[data-promohide]')){ save(KEY.promo, Date.now()+86400000); promo.classList.remove('open'); }
+      if(e.target.matches('[data-promohide]')){ localStorage.setItem('luio_promo_hide', Date.now()+86400000); promo.classList.remove('open'); }
       if(e.target.closest('[data-promocta]')){ promo.classList.remove('open'); }
     });
   }
+  document.dispatchEvent(new CustomEvent('luio:ready'));
 });
 
 })();

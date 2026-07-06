@@ -504,3 +504,50 @@ section{padding:84px 0}
   .side{display:none}
 }
 
+
+/* =========================================================
+   Admin — order management
+   ========================================================= */
+.admin-bar{background:var(--green);color:#e9e0cd;padding:12px 0}
+.admin-bar .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.admin-bar .a-brand{font-family:var(--serif);font-size:1.3rem;letter-spacing:.2em;color:#fff}
+.admin-bar .a-brand span{font-size:.66rem;letter-spacing:.3em;color:#b6c9ba;display:block}
+.admin-bar a{font-size:.8rem;color:#cdddd0}
+.admin-bar a:hover{color:#fff}
+.admin-wrap{max-width:1180px;margin:0 auto;padding:34px 28px 80px}
+.admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:14px}
+.admin-stat{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px}
+.admin-stat span{font-size:.76rem;color:var(--stone);letter-spacing:.06em}
+.admin-stat b{display:block;font-family:var(--serif);font-size:1.9rem;color:var(--ink);margin-top:6px}
+.admin-stat.accent b{color:var(--green)}
+.admin-stat.warn b{color:#b5773f}
+.status-chips{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0}
+.status-chips button{background:var(--paper);border:1px solid var(--line-strong);color:var(--ink-soft);padding:8px 16px;border-radius:999px;font-size:.78rem}
+.status-chips button.active{background:var(--green);color:#fff;border-color:var(--green)}
+.status-chips button .c{opacity:.7;margin-left:5px;font-size:.7rem}
+.admin-tools{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.admin-tools input{flex:1;min-width:200px;padding:11px 14px;border:1px solid var(--line-strong);border-radius:4px;font-family:inherit;background:#fff}
+.admin-tools input:focus{outline:none;border-color:var(--green)}
+.otable{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.otable th{background:var(--bg-2);text-align:left;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);padding:14px 16px;white-space:nowrap}
+.otable td{padding:14px 16px;border-top:1px solid var(--line);font-size:.88rem;vertical-align:top}
+.otable tr:hover td{background:#fcfaf5}
+.otable .ono{font-family:var(--serif);font-size:1rem}
+.otable .obuyer b{display:block}
+.otable .obuyer span{color:var(--stone);font-size:.78rem}
+.otable .oitems{color:var(--ink-soft);font-size:.82rem;max-width:280px}
+.otable .oprice{font-weight:600;white-space:nowrap}
+.otable select{padding:8px 10px;border:1px solid var(--line-strong);border-radius:4px;font-family:inherit;font-size:.82rem;background:#fff}
+.otable .odel{background:none;border:none;color:#b5473f;font-size:.76rem;text-decoration:underline;margin-top:8px;padding:0;display:block}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:600}
+.badge.결제대기{background:#f6ead2;color:#9a7526}
+.badge.결제완료{background:#dbe9df;color:#1c5a3f}
+.badge.배송준비{background:#dfe6f2;color:#3a5a8a}
+.badge.배송중{background:#e4dff2;color:#5a4a8a}
+.badge.배송완료{background:#d9ede1;color:#1c5a3f}
+.badge.취소{background:#f2dede;color:#9a3a3a}
+.admin-gate{max-width:400px;margin:80px auto;text-align:center}
+@media(max-width:860px){
+  .admin-stats{grid-template-columns:1fr 1fr}
+  .otable{display:block;overflow-x:auto;white-space:nowrap}
+}

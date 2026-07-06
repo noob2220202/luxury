@@ -18,25 +18,22 @@
 <script src="assets/js/products.js"></script>
 <script src="assets/js/app.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener('luio:ready', async ()=>{
   const root = document.getElementById('coRoot');
-  const items = window.LUIO.Cart.all();
-  const user = window.LUIO.Auth.current();
+  const d = await window.LUIO.api('/cart');
+  const user = window.LUIO.currentUser();
 
-  if(!items.length){
+  if(!d.items.length){
     root.innerHTML = `<div class="empty-state"><p>주문할 상품이 없습니다.</p><a class="btn green" href="shop.html" style="margin-top:20px">쇼핑하러 가기</a></div>`;
     return;
   }
-
-  const total = window.LUIO.Cart.total();
-  const ship = total>=5000000 ? 0 : 50000;
 
   root.innerHTML = `
   <form class="checkout" id="coForm" novalidate>
     <div>
       ${!user ? `<div class="co-section" style="border-color:var(--gold);background:#fbf6ec">
-        <h3>로그인이 필요합니다</h3>
-        <p class="muted" style="margin-bottom:14px">주문을 진행하려면 회원 로그인이 필요합니다.</p>
+        <h3>비회원 주문</h3>
+        <p class="muted" style="margin-bottom:14px">로그인하면 주문 내역을 마이 부티크에서 관리할 수 있습니다.</p>
         <button type="button" class="btn green sm" onclick="window.LUIO.openAuth('login')">로그인 / 회원가입</button>
       </div>`:''}
       <div class="co-section">
@@ -65,34 +62,36 @@ document.addEventListener('DOMContentLoaded', ()=>{
       <div class="summary">
         <h3>주문 상품</h3>
         <div id="coItems" style="margin-bottom:14px"></div>
-        <div class="row"><span>상품 합계</span><span>${won(total)}</span></div>
-        <div class="row"><span>배송비</span><span>${ship? won(ship):'무료'}</span></div>
-        <div class="row total"><span>총 결제 예정</span><b>${won(total+ship)}</b></div>
+        <div class="row"><span>상품 합계</span><span>${won(d.subtotal)}</span></div>
+        <div class="row"><span>배송비</span><span>${d.shipping? won(d.shipping):'무료'}</span></div>
+        <div class="row total"><span>총 결제 예정</span><b>${won(d.total)}</b></div>
         <button class="btn green block" type="submit" style="margin-top:18px">주문 접수하기</button>
         <p class="note">※ 데모 사이트로 실제 결제·청구가 발생하지 않습니다.</p>
       </div>
     </div>
   </form>`;
 
-  document.getElementById('coItems').innerHTML = items.map(i=>{ const p=byId(i.id);
-    return `<div style="display:flex;justify-content:space-between;font-size:.86rem;padding:5px 0;color:var(--ink-soft)">
-      <span>${p.brand} ${p.name} <b style="color:var(--stone)">×${i.qty}</b></span><span>${won(p.price*i.qty)}</span></div>`; }).join('');
+  document.getElementById('coItems').innerHTML = d.items.map(p=>
+    `<div style="display:flex;justify-content:space-between;font-size:.86rem;padding:5px 0;color:var(--ink-soft)">
+      <span>${p.brand} ${p.name} <b style="color:var(--stone)">×${p.qty}</b></span><span>${won(p.lineTotal)}</span></div>`).join('');
 
-  document.getElementById('coForm').addEventListener('submit', e=>{
+  document.getElementById('coForm').addEventListener('submit', async e=>{
     e.preventDefault();
-    if(!window.LUIO.Auth.current()){ window.LUIO.openAuth('login'); window.LUIO.toast('로그인 후 주문할 수 있습니다.'); return; }
     const f = e.target; let ok = true;
     ['name','phone','email','addr'].forEach(n=>{
       const inp = f[n]; const bad = !inp.value.trim() || (n==='email' && !/^\S+@\S+\.\S+$/.test(inp.value));
       inp.closest('.field').classList.toggle('invalid', bad); if(bad) ok=false;
     });
     if(!ok) return;
-    const order = window.LUIO.Orders.place({
-      name:f.name.value, phone:f.phone.value, email:f.email.value,
-      addr:f.addr.value + ' ' + f.addr2.value, memo:f.memo.value
-    });
-    window.LUIO.sync();
-    location.href = 'complete.html?no=' + order.no;
+    const btn = f.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = '접수 중…';
+    try{
+      const {orderNo} = await window.LUIO.api('/orders',{method:'POST',body:{
+        name:f.name.value, phone:f.phone.value, email:f.email.value,
+        address:(f.addr.value + ' ' + f.addr2.value).trim(), memo:f.memo.value
+      }});
+      await window.LUIO.refreshCart();
+      location.href = 'complete.html?no=' + orderNo;
+    }catch(err){ btn.disabled=false; btn.textContent='주문 접수하기'; window.LUIO.toast(err.message); }
   });
 });
 </script>

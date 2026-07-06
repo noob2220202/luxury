@@ -167,15 +167,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
     return `<a class="circle" href="${c.h}"><span class="disc ${c.g==='all'?'all':''}">${inner}</span><span>${c.t}</span></a>`;
   }).join('');
 
-  // featured products
-  const feat = PRODUCTS.slice(0,4).concat(PRODUCTS.slice(10,14));
-  document.getElementById('prodCount').innerHTML = PRODUCTS.length + '<sub>개 컬렉션</sub>';
+  // re-run reveal for injected .cat-card
+  document.querySelectorAll('.cat-card.reveal').forEach(el=>el.classList.add('in'));
+});
+
+// featured products from API (after state ready → wish hearts reflect login)
+document.addEventListener('luio:ready', async ()=>{
+  const {products} = await window.LUIO.api('/products');
+  const feat = products.filter(p=>['f1','f2','f7','f9','h1','h2','h8','h4'].includes(p.id));
+  document.getElementById('prodCount').innerHTML = products.length + '<sub>개 컬렉션</sub>';
   const grid = document.getElementById('featuredGrid');
   grid.innerHTML = feat.map(renderCard).join('');
   wireCards(grid);
-
-  // re-run reveal for injected .cat-card
-  document.querySelectorAll('.cat-card.reveal').forEach(el=>el.classList.add('in'));
 });
 </script>
 </body>
