@@ -8,22 +8,11 @@
 # =========================================================
 
 
-# ── (A) 도메인이 있는 경우 · 권장 (자동 HTTPS) ─────────────
-# luioffice.co.kr 부분을 실제 도메인으로 바꿔주세요.
-luioffice.co.kr {
+luioffice.shop {
 	encode gzip
 	reverse_proxy 127.0.0.1:9002
 }
 
-
-# ── (B) 기존 사이트들처럼 "도메인:포트" 로 붙이는 경우 ──────
-# 위 (A) 대신 아래 형태를 쓰세요. (둘 중 하나만!)
-#
-# your-domain.com:9002 {
-# 	encode gzip
-# 	reverse_proxy 127.0.0.1:9002
-# }
-#
-# ※ 주의: 이 경우 공개 포트(9002)와 pm2 내부 포트가 같으면 충돌합니다.
-#   그럴 땐 ecosystem.config.cjs 의 PORT 를 9102 등으로 바꾸고
-#   reverse_proxy 127.0.0.1:9102 로 맞춰주세요.
+www.luioffice.shop {
+	redir https://luioffice.shop{uri} permanent
+}
