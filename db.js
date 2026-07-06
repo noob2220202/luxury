@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS products (
   name TEXT NOT NULL,
   price INTEGER NOT NULL,
   tag TEXT,
+  img TEXT,
   stock INTEGER NOT NULL DEFAULT 5,
   sort INTEGER NOT NULL DEFAULT 0
 );
@@ -76,34 +77,37 @@ CREATE TABLE IF NOT EXISTS order_items (
 `);
 
 /* ---------- seed data ---------- */
+// img: 로열티 프리(Unsplash 라이선스) 실사진 URL — 브랜드 소유 이미지가 아닌
+// 동일 카테고리의 자유 이용 사진. 로드 실패 시 자동으로 SVG 아트로 폴백.
+const U = id => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=80`;
 const PRODUCTS = [
-  ['f1','fashion','핸드백','bag','camel','Hermès','Birkin 30 Togo',24500000,'ICONIC'],
-  ['f2','fashion','핸드백','bag','ink','Chanel','Classic Flap Medium',13800000,'BEST'],
-  ['f3','fashion','핸드백','bag','sand','Louis Vuitton','Neverfull MM',2900000,null],
-  ['f4','fashion','핸드백','bag','wine','Gucci','GG Marmont Small',3250000,null],
-  ['f5','fashion','핸드백','bag','forest','Bottega Veneta','Cassette Intrecciato',5600000,'NEW'],
-  ['f6','fashion','핸드백','bag','rose','Saint Laurent','Loulou Medium',3980000,null],
-  ['f7','fashion','아우터','coat','camel','Burberry','Kensington Trench Coat',3190000,'ICONIC'],
-  ['f8','fashion','니트','knit','sand','Brunello Cucinelli','Cashmere Ribbed Sweater',2450000,null],
-  ['f9','fashion','슈즈','shoe','olive','Loro Piana','Summer Walk Loafers',1850000,'NEW'],
-  ['f10','fashion','아이웨어','sunglass','slate','Cartier','Panthère Sunglasses',1290000,null],
-  ['h1','home','라운지체어','lounge','wine','Herman Miller','Eames Lounge Chair & Ottoman',11900000,'ICONIC'],
-  ['h2','home','소파','sofa','sand','B&B Italia','Camaleonda Modular Sofa',18500000,'BEST'],
-  ['h3','home','라운지체어','lounge','olive','Fritz Hansen','Egg Chair by A. Jacobsen',16200000,null],
-  ['h4','home','라운지체어','lounge','ink','Knoll','Barcelona Chair',9400000,'ICONIC'],
-  ['h5','home','체어','lounge','sky','Vitra','Panton Chair',490000,null],
-  ['h6','home','다이닝체어','lounge','camel','Carl Hansen & Søn','CH24 Wishbone Chair',890000,'NEW'],
-  ['h7','home','라운지','lounge','slate','Cassina','LC4 Chaise Longue',7800000,null],
-  ['h8','home','조명','lamp','gold','FLOS','Arco Floor Lamp',4300000,'ICONIC'],
-  ['h9','home','수납','cabinet','forest','USM','Haller Sideboard',5700000,null],
-  ['h10','home','소파','sofa','wine','Poltrona Frau','Chester One Sofa',21000000,'BEST']
+  ['f1','fashion','핸드백','bag','camel','Hermès','Birkin 30 Togo',24500000,'ICONIC', U('1584917865442-de89df76afd3')],
+  ['f2','fashion','핸드백','bag','ink','Chanel','Classic Flap Medium',13800000,'BEST', U('1591561954557-26941169b49e')],
+  ['f3','fashion','핸드백','bag','sand','Louis Vuitton','Neverfull MM',2900000,null, U('1548036328-c9fa89d128fa')],
+  ['f4','fashion','핸드백','bag','wine','Gucci','GG Marmont Small',3250000,null, U('1594223274512-ad4803739b7c')],
+  ['f5','fashion','핸드백','bag','forest','Bottega Veneta','Cassette Intrecciato',5600000,'NEW', U('1566150905458-1bf1fc113f0d')],
+  ['f6','fashion','핸드백','bag','rose','Saint Laurent','Loulou Medium',3980000,null, U('1590874103328-eac38a683ce7')],
+  ['f7','fashion','아우터','coat','camel','Burberry','Kensington Trench Coat',3190000,'ICONIC', U('1591047139829-d91aecb6caea')],
+  ['f8','fashion','니트','knit','sand','Brunello Cucinelli','Cashmere Ribbed Sweater',2450000,null, U('1576871337622-98d48d1cf531')],
+  ['f9','fashion','슈즈','shoe','olive','Loro Piana','Summer Walk Loafers',1850000,'NEW', U('1533867617858-e7b97e060509')],
+  ['f10','fashion','아이웨어','sunglass','slate','Cartier','Panthère Sunglasses',1290000,null, U('1572635196237-14b3f281503f')],
+  ['h1','home','라운지체어','lounge','wine','Herman Miller','Eames Lounge Chair & Ottoman',11900000,'ICONIC', U('1567538096630-e0c55bd6374c')],
+  ['h2','home','소파','sofa','sand','B&B Italia','Camaleonda Modular Sofa',18500000,'BEST', U('1555041469-a586c61ea9bc')],
+  ['h3','home','라운지체어','lounge','olive','Fritz Hansen','Egg Chair by A. Jacobsen',16200000,null, U('1567016432779-094069958ea5')],
+  ['h4','home','라운지체어','lounge','ink','Knoll','Barcelona Chair',9400000,'ICONIC', U('1506439773649-6e0eb8cfb237')],
+  ['h5','home','체어','lounge','sky','Vitra','Panton Chair',490000,null, U('1503602642458-232111445657')],
+  ['h6','home','다이닝체어','lounge','camel','Carl Hansen & Søn','CH24 Wishbone Chair',890000,'NEW', U('1580480055273-228ff5388ef8')],
+  ['h7','home','라운지','lounge','slate','Cassina','LC4 Chaise Longue',7800000,null, U('1519947486511-46149fa0a254')],
+  ['h8','home','조명','lamp','gold','FLOS','Arco Floor Lamp',4300000,'ICONIC', U('1507473885765-e6ed057f782c')],
+  ['h9','home','수납','cabinet','forest','USM','Haller Sideboard',5700000,null, U('1595428774223-ef52624120d2')],
+  ['h10','home','소파','sofa','wine','Poltrona Frau','Chester One Sofa',21000000,'BEST', U('1550226891-ef816aed4a98')]
 ];
 
 function seedProducts() {
   const count = db.prepare('SELECT COUNT(*) c FROM products').get().c;
   if (count > 0) return;
-  const ins = db.prepare(`INSERT INTO products (id,cat,sub,glyph,pal,brand,name,price,tag,stock,sort)
-                          VALUES (?,?,?,?,?,?,?,?,?,?,?)`);
+  const ins = db.prepare(`INSERT INTO products (id,cat,sub,glyph,pal,brand,name,price,tag,img,stock,sort)
+                          VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`);
   PRODUCTS.forEach((p, i) => ins.run(...p, 3 + (i % 5), i));
   console.log(`[seed] products: ${PRODUCTS.length}`);
 }

@@ -25,9 +25,10 @@ const PAL = {
   gold:['#f0e6cf','#cbae74']
 };
 
-function renderArt(p, w, h){
+/* 순수 SVG 아트 (사진 로드 실패 시 폴백) */
+function svgArt(p, w, h){
   const [c1,c2] = PAL[p.pal] || PAL.sand;
-  const gid = 'g_' + (p.id || Math.random().toString(36).slice(2));
+  const gid = 'g_' + (p.id || Math.random().toString(36).slice(2)) + '_' + w;
   const initial = (p.brand && p.brand[0] || 'L').toUpperCase();
   return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${p.brand} ${p.name}">
     <defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
@@ -37,6 +38,17 @@ function renderArt(p, w, h){
     <g transform="translate(${w/2-w*0.22},${h*0.34}) scale(${w*0.0044})" fill="none" stroke="#2a2118" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.72">${GLYPH[p.glyph]||''}</g>
     <text x="${w/2}" y="${h*0.90}" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="${w*0.05}" letter-spacing="${w*0.006}" fill="#3a2f22" opacity="0.72">${(p.brand||'').toUpperCase()}</text>
   </svg>`;
+}
+
+/* 이미지 우선(로컬 → 원격 → SVG 폴백). 절대 깨진 이미지 안 보이게 처리 */
+function renderArt(p, w, h){
+  const svg = svgArt(p, w, h);
+  if(!p.img && !p.id) return svg;
+  const local = `assets/img/products/${p.id}.jpg`;
+  const remote = (p.img || '').replace(/"/g,'&quot;');
+  // onerror 1차: 원격으로 교체, 2차: 숨김(→ 아래 SVG 노출)
+  const onerr = `if(!this.dataset.s){this.dataset.s=1;this.src='${remote}';}else{this.style.display='none';}`;
+  return `<div class="art-wrap">${svg}<img class="art-photo" src="${local}" alt="${p.brand} ${p.name}" loading="lazy" onerror="${remote?onerr:"this.style.display='none'"}"></div>`;
 }
 
 function won(n){ return '₩' + Number(n).toLocaleString('ko-KR'); }

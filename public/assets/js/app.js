@@ -49,25 +49,23 @@ const NAV = [
 ];
 
 function buildHeader(){
-  const half = Math.ceil(NAV.length/2);
-  const left = NAV.slice(0,half).map(n=>`<a href="${n.h}">${n.t}</a>`).join('');
-  const right = NAV.slice(half).map(n=>`<a href="${n.h}">${n.t}</a>`).join('');
+  const nav = NAV.map(n=>`<a href="${n.h}">${n.t}</a>`).join('');
   const el = document.createElement('div');
   el.innerHTML = `
   <div class="announce">전 상품 정품 보증 · 5백만원 이상 <b>무료 컨시어지 배송</b> · 신규 가입 시 <b>5% 웰컴 쿠폰</b></div>
   <header class="site-header">
-    <div class="header-inner">
-      <nav class="nav left">${left}
+    <div class="header-top">
+      <div class="h-side left">
         <button class="icon-btn menu-toggle" data-menu aria-label="menu">${I.menu}</button>
-      </nav>
+        <button class="icon-btn" data-search aria-label="search">${I.search}<span class="lbl">Search</span></button>
+      </div>
       <a class="brand" href="index.html">LUIOFFICE<small>MAISON DE LUXE</small></a>
-      <nav class="nav right">
-        <span class="desk">${right}</span>
-        <button class="icon-btn" data-search aria-label="search">${I.search}</button>
-        <button class="icon-btn" data-account aria-label="account"><span data-authlabel>로그인</span></button>
-        <button class="icon-btn" data-cart aria-label="cart">${I.bag}<span class="cart-count" data-cartcount>0</span></button>
-      </nav>
+      <div class="h-side right">
+        <button class="icon-btn" data-account aria-label="account">${I.user}<span class="lbl" data-authlabel>로그인</span></button>
+        <button class="icon-btn" data-cart aria-label="cart">${I.bag}<span class="lbl">쇼핑백</span><span class="cart-count" data-cartcount>0</span></button>
+      </div>
     </div>
+    <nav class="header-nav">${nav}</nav>
   </header>`;
   document.body.prepend(el);
 }
@@ -112,15 +110,7 @@ function buildChrome(){
     </div>
   </div>
 
-  <div class="toast" data-toast></div>
-
-  <nav class="bottom-nav">
-    <a href="index.html" data-bn="home">${I.home}<span>홈</span></a>
-    <a href="#" data-search>${I.search}<span>검색</span></a>
-    <a href="account.html?tab=wish" data-bn="wish">${I.heart}<span>찜</span></a>
-    <a href="#" data-cart class="bn-badge">${I.bag}<b data-cartcount>0</b><span>쇼핑백</span></a>
-    <a href="account.html" data-bn="my">${I.user}<span>마이</span></a>
-  </nav>`;
+  <div class="toast" data-toast></div>`;
   document.body.append(el);
 }
 
