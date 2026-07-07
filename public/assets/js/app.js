@@ -145,7 +145,7 @@ function buildFooter(){
       주소 서울특별시 강남구 삼성로85길 33, 비04-씨48호(대치동) &nbsp;|&nbsp; 업태 도소매업 / 종목 전자상거래(생활용품 및 패션잡화)
     </div>
     <div class="footer-bottom">
-      <span>© 2026 LUIOFFICE Inc. All rights reserved.</span>
+      <span>© 2025 LUIOFFICE Inc. All rights reserved.</span>
       <span>이용약관 · 개인정보처리방침</span>
     </div>
   </div>`;
