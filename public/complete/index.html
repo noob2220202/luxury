@@ -33,7 +33,6 @@ document.addEventListener('luio:ready', async ()=>{
       ${order.items.map(i=>`<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:.9rem"><span>${i.brand} ${i.name} ×${i.qty}</span><span>${won(i.price*i.qty)}</span></div>`).join('')}
       <div style="display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:10px;padding-top:12px;font-family:var(--serif);font-size:1.2rem"><span>합계</span><b>${won(order.total)}</b></div>
     </div>
-    <p class="muted" style="font-size:.78rem;margin-top:20px">※ 데모 사이트로 실제 결제는 이루어지지 않았습니다.</p>
     <div style="margin-top:26px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
       <a class="btn green" href="/account?tab=orders">주문 내역 보기</a>
       <a class="btn ghost" href="/shop">쇼핑 계속하기</a>

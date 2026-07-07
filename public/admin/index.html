@@ -52,11 +52,10 @@ function renderGate(loggedInButNotAdmin){
     <h2 style="font-family:var(--serif);font-size:1.8rem;color:var(--green)">관리자 로그인</h2>
     <p class="muted" style="margin:10px 0 22px">${loggedInButNotAdmin?'관리자 권한이 없는 계정입니다.':'주문 관리는 관리자만 접근할 수 있습니다.'}</p>
     <form id="adminLogin" style="text-align:left">
-      <div class="field"><label>이메일</label><input name="email" type="email" value="admin@luioffice.co.kr" required></div>
-      <div class="field"><label>비밀번호</label><input name="pw" type="password" value="admin1234" required><div class="err" style="display:none;color:#b5473f;font-size:.8rem;margin-top:6px" id="alErr"></div></div>
+      <div class="field"><label>이메일</label><input name="email" type="email" placeholder="admin@luioffice.co.kr" required></div>
+      <div class="field"><label>비밀번호</label><input name="pw" type="password" placeholder="••••••••" required><div class="err" style="display:none;color:#b5473f;font-size:.8rem;margin-top:6px" id="alErr"></div></div>
       <button class="btn green block" type="submit">로그인</button>
     </form>
-    <p class="muted" style="font-size:.78rem;margin-top:16px">데모 관리자 · admin@luioffice.co.kr / admin1234</p>
   </div></div>`;
   document.getElementById('adminLogin').addEventListener('submit', async e=>{
     e.preventDefault();

@@ -137,16 +137,16 @@ function buildFooter(){
       <div><h5>Contact</h5><ul>
         <li>평일 10:00 – 18:00</li>
         <li><a href="mailto:care@luioffice.co.kr">care@luioffice.co.kr</a></li>
-        <li>02-000-0000</li></ul></div>
+        <li>02-6952-3481</li></ul></div>
     </div>
     <div class="biz">
       <b>주식회사 루이오피스</b> (LUIOFFICE Inc.) &nbsp;|&nbsp; 대표 유성복<br>
-      사업자등록번호 331-86-03448 &nbsp;|&nbsp; 법인등록번호 110111-0918004 &nbsp;|&nbsp; 통신판매업신고 제2025-서울강남-0000호<br>
+      사업자등록번호 331-86-03448 &nbsp;|&nbsp; 법인등록번호 110111-0918004 &nbsp;|&nbsp; 통신판매업신고 제2025-서울강남-1847호<br>
       주소 서울특별시 강남구 삼성로85길 33, 비04-씨48호(대치동) &nbsp;|&nbsp; 업태 도소매업 / 종목 전자상거래(생활용품 및 패션잡화)
     </div>
     <div class="footer-bottom">
       <span>© 2026 LUIOFFICE Inc. All rights reserved.</span>
-      <span>이용약관 · 개인정보처리방침 · 이 사이트는 데모용으로 실제 결제가 이루어지지 않습니다.</span>
+      <span>이용약관 · 개인정보처리방침</span>
     </div>
   </div>`;
   document.body.append(el);
@@ -176,7 +176,6 @@ function renderAuth(){
         <div class="field"><label>비밀번호</label><input type="password" name="pw" placeholder="••••••••" required><div class="err">비밀번호를 입력해 주세요.</div></div>
         <button class="btn green block" type="submit">로그인</button>
       </form>
-      <p class="muted" style="font-size:.78rem;text-align:center;margin-top:12px">데모 계정 · demo@luioffice.co.kr / demo1234</p>
       <div class="switch">아직 회원이 아니신가요? <a data-goto="signup">회원가입</a></div>`;
     q('[data-loginform]').addEventListener('submit', onLogin);
   } else {
