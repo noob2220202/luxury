@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 <main>
@@ -45,15 +45,15 @@
         <div class="grid" id="shopGrid"></div>
         <div class="empty-state" id="emptyState" style="display:none">
           <p>조건에 맞는 상품이 없습니다.</p>
-          <a class="btn ghost sm" href="shop.html" style="margin-top:16px">전체 보기</a>
+          <a class="btn ghost sm" href="/shop" style="margin-top:16px">전체 보기</a>
         </div>
       </div>
     </div>
   </section>
 </main>
 
-<script src="assets/js/products.js"></script>
-<script src="assets/js/app.js"></script>
+<script src="/assets/js/products.js"></script>
+<script src="/assets/js/app.js"></script>
 <script>
 document.addEventListener('luio:ready', async ()=>{
   const params = new URLSearchParams(location.search);
@@ -76,12 +76,12 @@ document.addEventListener('luio:ready', async ()=>{
     const cats = [{k:'all', t:'전체'}, {k:'fashion', t:'명품 패션'}, {k:'home', t:'디자인 가구'}];
     document.getElementById('catNav').innerHTML = cats.map(c=>{
       const n = c.k==='all'?all.length:all.filter(p=>p.cat===c.k).length;
-      return `<li><a href="shop.html?cat=${c.k}" class="${state.cat===c.k&&!state.sub&&!state.brand&&!state.q?'active':''}">${c.t}<span class="n">${n}</span></a></li>`;
+      return `<li><a href="/shop?cat=${c.k}" class="${state.cat===c.k&&!state.sub&&!state.brand&&!state.q?'active':''}">${c.t}<span class="n">${n}</span></a></li>`;
     }).join('');
     const brands = [...new Set(all.map(p=>p.brand))].sort();
     document.getElementById('brandNav').innerHTML = brands.map(b=>{
       const n = all.filter(p=>p.brand===b).length;
-      return `<li><a href="shop.html?brand=${encodeURIComponent(b)}" class="${state.brand===b?'active':''}">${b}<span class="n">${n}</span></a></li>`;
+      return `<li><a href="/shop?brand=${encodeURIComponent(b)}" class="${state.brand===b?'active':''}">${b}<span class="n">${n}</span></a></li>`;
     }).join('');
   }
 

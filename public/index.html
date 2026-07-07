@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
@@ -22,8 +22,8 @@
       <h1 class="reveal">입는 명품과<br><em>머무는</em> 명품.</h1>
       <p class="reveal">세계의 패션 하우스와 디자인 가구를, 정품 검수를 거쳐 한 공간에 모았습니다. 오늘의 무드를 완성하는 오브제를 만나보세요.</p>
       <div class="eh-cta reveal">
-        <a class="btn gold" href="shop.html?cat=fashion">패션 컬렉션</a>
-        <a class="btn ghost" href="shop.html?cat=home">가구 컬렉션</a>
+        <a class="btn gold" href="/shop?cat=fashion">패션 컬렉션</a>
+        <a class="btn ghost" href="/shop?cat=home">가구 컬렉션</a>
       </div>
     </div>
   </section>
@@ -33,7 +33,7 @@
 
   <!-- TWO WORLDS -->
   <section class="worlds" style="padding:0">
-    <a class="world reveal" href="shop.html?cat=fashion">
+    <a class="world reveal" href="/shop?cat=fashion">
       <div class="w-media" id="worldFashion"></div>
       <div class="w-body">
         <span class="eyebrow" style="color:#e7d9b8">Fashion</span>
@@ -42,7 +42,7 @@
         <span class="link">컬렉션 보기</span>
       </div>
     </a>
-    <a class="world reveal" href="shop.html?cat=home">
+    <a class="world reveal" href="/shop?cat=home">
       <div class="w-media" id="worldHome"></div>
       <div class="w-body">
         <span class="eyebrow" style="color:#e7d9b8">Living</span>
@@ -61,7 +61,7 @@
     </div>
     <div class="feat-grid" id="featGrid"></div>
     <div style="text-align:center;margin-top:46px">
-      <a class="btn ghost" href="shop.html">전체 컬렉션 보기</a>
+      <a class="btn ghost" href="/shop">전체 컬렉션 보기</a>
     </div>
   </section>
 
@@ -73,7 +73,7 @@
         <span class="eyebrow" style="color:#d8c79a">The Luioffice Standard</span>
         <h2>진품, 그 이상의<br>확신을 큐레이션합니다.</h2>
         <p>모든 상품은 전문 감정사의 다단계 검수를 거칩니다. 소재의 상태, 봉제, 시리얼까지 확인한 뒤에야 루이오피스의 이름으로 제안합니다.</p>
-        <a class="btn ghost" href="shop.html">큐레이션 만나보기</a>
+        <a class="btn ghost" href="/shop">큐레이션 만나보기</a>
       </div>
     </div>
   </section>
@@ -82,7 +82,7 @@
   <section class="wrap" style="padding-top:20px">
     <div class="row-head reveal">
       <div><span class="eyebrow">New Arrivals</span><h2>새로 도착한 오브제</h2></div>
-      <a class="link-more" href="shop.html?sort=new">신상품 전체 →</a>
+      <a class="link-more" href="/shop?sort=new">신상품 전체 →</a>
     </div>
     <div class="grid" id="newGrid"></div>
   </section>
@@ -127,8 +127,8 @@
   </div>
 </div>
 
-<script src="assets/js/products.js"></script>
-<script src="assets/js/app.js"></script>
+<script src="/assets/js/products.js"></script>
+<script src="/assets/js/app.js"></script>
 <script>
 document.addEventListener('luio:ready', async ()=>{
   const {products} = await window.LUIO.api('/products');

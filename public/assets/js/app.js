@@ -40,12 +40,12 @@ function won(n){ return '₩' + Number(n).toLocaleString('ko-KR'); }
    Chrome
    ========================================================= */
 const NAV = [
-  {t:'신상품', h:'shop.html?sort=new'},
-  {t:'패션', h:'shop.html?cat=fashion'},
-  {t:'가구·리빙', h:'shop.html?cat=home'},
-  {t:'브랜드', h:'shop.html'},
-  {t:'컬렉션', h:'index.html#editorial'},
-  {t:'스토어', h:'index.html#service'}
+  {t:'신상품', h:'/shop?sort=new'},
+  {t:'패션', h:'/shop?cat=fashion'},
+  {t:'가구·리빙', h:'/shop?cat=home'},
+  {t:'브랜드', h:'/shop'},
+  {t:'컬렉션', h:'/#editorial'},
+  {t:'스토어', h:'/#service'}
 ];
 
 function buildHeader(){
@@ -59,7 +59,7 @@ function buildHeader(){
         <button class="icon-btn menu-toggle" data-menu aria-label="menu">${I.menu}</button>
         <button class="icon-btn" data-search aria-label="search">${I.search}<span class="lbl">Search</span></button>
       </div>
-      <a class="brand" href="index.html">LUIOFFICE<small>MAISON DE LUXE</small></a>
+      <a class="brand" href="/">LUIOFFICE<small>MAISON DE LUXE</small></a>
       <div class="h-side right">
         <button class="icon-btn" data-account aria-label="account">${I.user}<span class="lbl" data-authlabel>로그인</span></button>
         <button class="icon-btn" data-cart aria-label="cart">${I.bag}<span class="lbl">쇼핑백</span><span class="cart-count" data-cartcount>0</span></button>
@@ -76,7 +76,7 @@ function buildChrome(){
   <div class="m-menu" data-mmenu>
     <button class="m-close" data-mclose>&times;</button>
     ${NAV.map(n=>`<a href="${n.h}">${n.t}</a>`).join('')}
-    <a href="account.html" data-account-link>마이 부티크</a>
+    <a href="/account" data-account-link>마이 부티크</a>
   </div>
 
   <div class="drawer-overlay" data-drawerov></div>
@@ -125,15 +125,15 @@ function buildFooter(){
         <p style="margin-top:14px;max-width:34ch;color:#a99e86">명품 패션과 디자인 가구를 한 곳에서. 루이오피스는 정품 검수를 마친 큐레이션만을 제안합니다.</p>
       </div>
       <div><h5>Shop</h5><ul>
-        <li><a href="shop.html?cat=fashion">명품 패션</a></li>
-        <li><a href="shop.html?cat=home">디자인 가구</a></li>
-        <li><a href="shop.html?sort=new">신상품</a></li>
-        <li><a href="shop.html">전체보기</a></li></ul></div>
+        <li><a href="/shop?cat=fashion">명품 패션</a></li>
+        <li><a href="/shop?cat=home">디자인 가구</a></li>
+        <li><a href="/shop?sort=new">신상품</a></li>
+        <li><a href="/shop">전체보기</a></li></ul></div>
       <div><h5>Service</h5><ul>
-        <li><a href="index.html#service">컨시어지 배송</a></li>
-        <li><a href="index.html#service">정품 감정</a></li>
-        <li><a href="index.html#service">케어 서비스</a></li>
-        <li><a href="account.html">마이 부티크</a></li></ul></div>
+        <li><a href="/#service">컨시어지 배송</a></li>
+        <li><a href="/#service">정품 감정</a></li>
+        <li><a href="/#service">케어 서비스</a></li>
+        <li><a href="/account">마이 부티크</a></li></ul></div>
       <div><h5>Contact</h5><ul>
         <li>평일 10:00 – 18:00</li>
         <li><a href="mailto:care@luioffice.co.kr">care@luioffice.co.kr</a></li>
@@ -218,7 +218,7 @@ async function renderDrawer(){
   box.innerHTML = '<p class="muted" style="padding:30px 0;text-align:center">불러오는 중…</p>';
   const d = await api('/cart');
   if(!d.items.length){
-    box.innerHTML = `<div class="drawer-empty"><p>쇼핑백이 비어 있습니다.</p><a class="btn ghost sm" href="shop.html" style="margin-top:16px">쇼핑 계속하기</a></div>`;
+    box.innerHTML = `<div class="drawer-empty"><p>쇼핑백이 비어 있습니다.</p><a class="btn ghost sm" href="/shop" style="margin-top:16px">쇼핑 계속하기</a></div>`;
     foot.innerHTML=''; return;
   }
   box.innerHTML = d.items.map(p=>`<div class="d-item">
@@ -232,7 +232,7 @@ async function renderDrawer(){
       <div style="text-align:right;font-size:.9rem">${won(p.lineTotal)}</div>
     </div>`).join('');
   foot.innerHTML = `<div class="row"><span>합계</span><b>${won(d.total)}</b></div>
-    <a class="btn green block" href="cart.html">쇼핑백 보기 · 주문하기</a>`;
+    <a class="btn green block" href="/cart">쇼핑백 보기 · 주문하기</a>`;
   qa('[data-drem]',box).forEach(b=>b.addEventListener('click', async ()=>{ await api('/cart/'+b.dataset.drem,{method:'DELETE'}); await refreshCart(); await renderDrawer(); toast('삭제되었습니다.'); }));
 }
 
@@ -275,9 +275,9 @@ function wire(){
     else if(t.matches('[data-drawerclose],[data-drawerov]')){ closeDrawer(); }
     else if(t.matches('[data-authclose]')){ closeAuth(); }
     else if(t.matches('[data-searchclose]')){ closeSearch(); }
-    else if(t.matches('[data-account],[data-account-link]')){ e.preventDefault(); if(state.user) location.href='account.html'; else openAuth('login'); }
+    else if(t.matches('[data-account],[data-account-link]')){ e.preventDefault(); if(state.user) location.href='/account'; else openAuth('login'); }
   });
-  q('[data-searchform]')?.addEventListener('submit', e=>{ e.preventDefault(); location.href='shop.html?q='+encodeURIComponent(e.target.q.value.trim()); });
+  q('[data-searchform]')?.addEventListener('submit', e=>{ e.preventDefault(); location.href='/shop?q='+encodeURIComponent(e.target.q.value.trim()); });
   document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeDrawer(); closeAuth(); closeSearch(); q('[data-mmenu]')?.classList.remove('open'); } });
 }
 

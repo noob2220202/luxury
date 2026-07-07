@@ -224,12 +224,28 @@ app.delete('/api/admin/orders/:no', requireAdmin, (req, res) => {
 });
 
 /* =========================================================
-   STATIC (마지막)
+   PAGES (clean URLs, no .html) + STATIC ASSETS
    ========================================================= */
-app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));
+const PUB = path.join(__dirname, 'public');
+app.use('/assets', express.static(path.join(PUB, 'assets'), { maxAge: '1h' }));
+
+const PAGES = ['shop', 'product', 'cart', 'checkout', 'complete', 'account', 'admin'];
+app.get('/', (req, res) => res.sendFile(path.join(PUB, 'index.html')));
+PAGES.forEach(name => {
+  app.get('/' + name, (req, res) => res.sendFile(path.join(PUB, name, 'index.html')));
+});
+
+// 기존 *.html 링크(북마크 등) → 깨끗한 경로로 301 리다이렉트, 쿼리스트링 보존
+app.get(/^\/(index|shop|product|cart|checkout|complete|account|admin)\.html$/, (req, res) => {
+  const page = req.params[0];
+  const clean = page === 'index' ? '/' : '/' + page;
+  const qs = req.url.split('?')[1];
+  res.redirect(301, clean + (qs ? '?' + qs : ''));
+});
+
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'not found' });
-  res.status(404).sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.status(404).sendFile(path.join(PUB, 'index.html'));
 });
 
 app.listen(PORT, HOST, () => console.log(`LUIOFFICE → http://${HOST}:${PORT}`));

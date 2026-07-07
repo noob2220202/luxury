@@ -44,7 +44,7 @@ function svgArt(p, w, h){
 function renderArt(p, w, h){
   const svg = svgArt(p, w, h);
   if(!p.img && !p.id) return svg;
-  const local = `assets/img/products/${p.id}.jpg`;
+  const local = `/assets/img/products/${p.id}.jpg`;
   const remote = (p.img || '').replace(/"/g,'&quot;');
   // onerror 1차: 원격으로 교체, 2차: 숨김(→ 아래 SVG 노출)
   const onerr = `if(!this.dataset.s){this.dataset.s=1;this.src='${remote}';}else{this.style.display='none';}`;
@@ -63,12 +63,12 @@ function renderCard(p){
   const tag = p.tag ? `<span class="tag ${p.tag==='ICONIC'||p.tag==='BEST'?'gold':''}">${p.tag}</span>` : '';
   return `<article class="card" data-card="${p.id}">
     <div class="thumb">
-      <a href="product.html?id=${p.id}" aria-label="${p.brand} ${p.name}">${renderArt(p,360,480)}</a>
+      <a href="/product?id=${p.id}" aria-label="${p.brand} ${p.name}">${renderArt(p,360,480)}</a>
       ${tag}
       <button class="wish ${wished?'active':''}" data-wish="${p.id}" aria-label="찜">${wished?window.LUIO.I.heartF:window.LUIO.I.heart}</button>
       <button class="add" data-add="${p.id}">쇼핑백 담기</button>
     </div>
-    <a href="product.html?id=${p.id}" class="meta">
+    <a href="/product?id=${p.id}" class="meta">
       <div class="brand-name">${p.brand}</div>
       <div class="prod-name">${p.name}</div>
       <div class="price">${won(p.price)}</div>

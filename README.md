@@ -21,7 +21,7 @@
 - 마이 부티크 (주문 내역 / 찜 / 회원 정보)
 - 첫 방문 웰컴 쿠폰 팝업
 
-**관리자(어드민)** — `/admin.html`
+**관리자(어드민)** — `/admin`
 - 관리자 로그인 게이트 (권한 체크)
 - 대시보드: 총 주문 / 매출 / 결제 대기 / 회원 수 / 상태별 건수
 - 주문 목록: 상태 필터 칩 · 검색(주문번호·이름·이메일·연락처)
@@ -57,17 +57,32 @@ URL 을 바꾸려면 `db.js` 의 `PRODUCTS` 배열 `img` 값을 수정 후 `data
 ## 파일 구조
 
 ```
-server.js               Express 앱 + REST API + 어드민 API
+server.js               Express 앱 + 페이지 라우팅 + REST API + 어드민 API
 db.js                   SQLite 스키마 + 시드(상품/관리자/테스트 주문)
 ecosystem.config.cjs    pm2 설정 (PORT 9002, HOST 127.0.0.1)
 Caddyfile.snippet       /etc/caddy/Caddyfile 에 append 할 블록
 package.json
 data/                   (자동 생성, git 제외) luxury.db, sessions.db
-public/                 정적 프론트엔드
-  index / shop / product / cart / checkout / complete / account / admin .html
+public/                 프론트엔드 (페이지별 폴더 + index.html)
+  index.html             홈 (/)
+  shop/index.html        컬렉션 (/shop)
+  product/index.html     상품 상세 (/product?id=)
+  cart/index.html        장바구니 (/cart)
+  checkout/index.html    주문서 (/checkout)
+  complete/index.html    주문완료 (/complete?no=)
+  account/index.html     마이 부티크 (/account)
+  admin/index.html       어드민 (/admin)
   assets/css/style.css
   assets/js/products.js  SVG 아트 + 카드 렌더
   assets/js/app.js       API 통신 · 인증 · 장바구니 · 찜 · 모달 · 헤더/푸터
+```
+
+### URL 구조
+확장자 없는 **깨끗한 경로**로 서빙됩니다 (`server.js` 가 `public/<page>/index.html` 을 명시적으로 라우팅).
+과거 `*.html` 형태로 접근하면 동일 경로로 **301 리다이렉트**(쿼리스트링 유지)되어 하위호환됩니다.
+```
+/            /shop            /product?id=f1     /cart
+/checkout    /complete?no=…   /account?tab=orders /admin
 ```
 
 ### 주요 API
@@ -112,7 +127,7 @@ sudo systemctl reload caddy
 
 ### 로컬 미리보기
 ```bash
-npm install && npm start      # http://127.0.0.1:9002  (어드민: /admin.html)
+npm install && npm start      # http://127.0.0.1:9002  (어드민: /admin)
 ```
 
 ### 운영 팁
