@@ -632,3 +632,24 @@ section{padding:84px 0}
 /* ---------- Account order meta ---------- */
 .order-card .oc-meta{display:flex;flex-wrap:wrap;gap:6px 24px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);font-size:.82rem;color:var(--stone)}
 .order-card .oc-meta b{color:var(--ink-soft);font-weight:500}
+
+/* ---------- Admin: detail button + detail modal ---------- */
+.otable .odetail{background:none;border:none;color:var(--green);font-size:.76rem;text-decoration:underline;margin-top:8px;padding:0;display:block;font-weight:600}
+.detail-modal{width:min(520px,100%);max-height:90vh;overflow-y:auto}
+.detail-modal .modal-head .badge{display:inline-block}
+.detail-modal .d-items{border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:8px}
+.detail-modal .d-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.detail-modal .d-item:last-child{border-bottom:none}
+.detail-modal .d-item-thumb{width:56px;height:70px;flex:none;border-radius:4px;overflow:hidden;background:var(--bg-2)}
+.detail-modal .d-item-thumb .art-wrap,.detail-modal .d-item-thumb svg,.detail-modal .d-item-thumb img{width:100%;height:100%}
+.detail-modal .d-item-info{flex:1}
+.detail-modal .d-item-info .d-brand{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-deep);font-weight:600}
+.detail-modal .d-item-info .d-name{font-family:var(--serif);font-size:1.1rem}
+.detail-modal .d-item-info .d-qty{font-size:.78rem;color:var(--stone);margin-top:2px}
+.detail-modal .d-item-price{font-size:.95rem;white-space:nowrap}
+.detail-modal .d-sec{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--stone);margin:20px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.detail-modal .d-row{display:flex;justify-content:space-between;gap:16px;padding:6px 0;font-size:.9rem}
+.detail-modal .d-row span{color:var(--stone);flex:none}
+.detail-modal .d-row b{color:var(--ink);font-weight:500;text-align:right}
+.detail-modal .d-row.d-total{border-top:1px solid var(--line);margin-top:8px;padding-top:12px}
+.detail-modal .d-row.d-total b{font-family:var(--serif);font-size:1.3rem;color:var(--green)}
