@@ -54,7 +54,14 @@ document.addEventListener('luio:ready', async ()=>{
       </div>
       <div class="co-section">
         <h3>결제 수단</h3>
-        <div class="pay-disabled">💳 현재 안전결제 시스템 점검 중입니다.<br>주문 접수 후 담당 컨시어지가 결제 및 배송 안내를 개별 연락드립니다.</div>
+        <div class="pay-methods" id="payMethods">
+          <label class="pay-opt"><input type="radio" name="pay" value="무통장입금" checked><span>무통장입금</span></label>
+          <label class="pay-opt"><input type="radio" name="pay" value="실시간 계좌이체"><span>실시간 계좌이체</span></label>
+          <label class="pay-opt"><input type="radio" name="pay" value="신용카드"><span>신용카드</span></label>
+          <label class="pay-opt"><input type="radio" name="pay" value="카카오페이"><span>카카오페이</span></label>
+          <label class="pay-opt"><input type="radio" name="pay" value="가상계좌"><span>가상계좌</span></label>
+        </div>
+        <div class="pay-disabled" style="margin-top:14px">💳 현재 안전결제 시스템 점검 중입니다.<br>주문 접수 후 선택하신 결제수단으로 담당 컨시어지가 안내를 개별 연락드립니다.</div>
       </div>
     </div>
 
@@ -87,7 +94,8 @@ document.addEventListener('luio:ready', async ()=>{
     try{
       const {orderNo} = await window.LUIO.api('/orders',{method:'POST',body:{
         name:f.name.value, phone:f.phone.value, email:f.email.value,
-        address:(f.addr.value + ' ' + f.addr2.value).trim(), memo:f.memo.value
+        address:(f.addr.value + ' ' + f.addr2.value).trim(), memo:f.memo.value,
+        paymentMethod:(f.querySelector('input[name=pay]:checked')||{}).value
       }});
       await window.LUIO.refreshCart();
       location.href = '/complete?no=' + orderNo;

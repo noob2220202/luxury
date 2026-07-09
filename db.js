@@ -76,6 +76,16 @@ CREATE TABLE IF NOT EXISTS order_items (
 );
 `);
 
+/* ---------- migrations (기존 DB 보존하며 컬럼 추가) ---------- */
+function ensureColumn(table, col, def) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!cols.some(c => c.name === col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
+}
+ensureColumn('orders', 'payment_method', 'TEXT');   // 결제방법
+ensureColumn('order_items', 'img', 'TEXT');         // 상품이미지(스냅샷)
+ensureColumn('order_items', 'glyph', 'TEXT');
+ensureColumn('order_items', 'pal', 'TEXT');
+
 /* ---------- seed data ---------- */
 // img: 로열티 프리(Unsplash 라이선스) 실사진 URL — 브랜드 소유 이미지가 아닌
 // 동일 카테고리의 자유 이용 사진. 로드 실패 시 자동으로 SVG 아트로 폴백.
@@ -129,23 +139,23 @@ function seedAdmin() {
 }
 
 const FAKE = [
-  { name:'박서연', phone:'010-2841-5573', email:'seoyeon.p@gmail.com',  addr:'서울 강남구 도산대로 45길 12, 302호', items:[['f2',1],['f9',1]], status:'배송완료', daysAgo:14 },
-  { name:'정민준', phone:'010-9932-1180', email:'minjun.j@naver.com',   addr:'서울 용산구 이태원로 210, 1704호',   items:[['h1',1]],           status:'배송중',   daysAgo:9 },
-  { name:'이하은', phone:'010-4471-6624', email:'haeun.lee@daum.net',   addr:'경기 성남시 분당구 판교역로 235',     items:[['h8',1],['h5',2]],   status:'배송준비', daysAgo:6 },
-  { name:'최도윤', phone:'010-7756-9901', email:'doyoon.c@gmail.com',   addr:'서울 서초구 반포대로 275, 2201호',    items:[['f1',1]],           status:'결제완료', daysAgo:4 },
-  { name:'윤지우', phone:'010-3390-4412', email:'jiwoo.y@kakao.com',    addr:'부산 해운대구 마린시티2로 33',         items:[['h2',1]],           status:'결제완료', daysAgo:3 },
-  { name:'강서준', phone:'010-6612-7708', email:'seojun.k@gmail.com',   addr:'서울 마포구 월드컵북로 400, 805호',   items:[['f5',1],['f10',1]],  status:'결제대기', daysAgo:1 },
-  { name:'임채원', phone:'010-2205-8834', email:'chaewon.im@naver.com', addr:'인천 연수구 송도과학로 32',            items:[['h4',1],['h6',2]],   status:'결제대기', daysAgo:0 },
-  { name:'한소율', phone:'010-8817-3345', email:'soyul.han@gmail.com',  addr:'서울 송파구 올림픽로 300, 3410호',    items:[['f7',1]],           status:'취소',     daysAgo:11 }
+  { name:'박서연', phone:'010-2841-5573', email:'seoyeon.p@gmail.com',  addr:'서울 강남구 도산대로 45길 12, 302호', items:[['f2',1],['f9',1]], status:'배송완료', pay:'신용카드',       daysAgo:14 },
+  { name:'정민준', phone:'010-9932-1180', email:'minjun.j@naver.com',   addr:'서울 용산구 이태원로 210, 1704호',   items:[['h1',1]],           status:'배송중',   pay:'무통장입금',     daysAgo:9 },
+  { name:'이하은', phone:'010-4471-6624', email:'haeun.lee@daum.net',   addr:'경기 성남시 분당구 판교역로 235',     items:[['h8',1],['h5',2]],   status:'배송준비', pay:'실시간 계좌이체', daysAgo:6 },
+  { name:'최도윤', phone:'010-7756-9901', email:'doyoon.c@gmail.com',   addr:'서울 서초구 반포대로 275, 2201호',    items:[['f1',1]],           status:'결제완료', pay:'신용카드',       daysAgo:4 },
+  { name:'윤지우', phone:'010-3390-4412', email:'jiwoo.y@kakao.com',    addr:'부산 해운대구 마린시티2로 33',         items:[['h2',1]],           status:'결제완료', pay:'카카오페이',     daysAgo:3 },
+  { name:'강서준', phone:'010-6612-7708', email:'seojun.k@gmail.com',   addr:'서울 마포구 월드컵북로 400, 805호',   items:[['f5',1],['f10',1]],  status:'결제대기', pay:'무통장입금',     daysAgo:1 },
+  { name:'임채원', phone:'010-2205-8834', email:'chaewon.im@naver.com', addr:'인천 연수구 송도과학로 32',            items:[['h4',1],['h6',2]],   status:'결제대기', pay:'가상계좌',       daysAgo:0 },
+  { name:'한소율', phone:'010-8817-3345', email:'soyul.han@gmail.com',  addr:'서울 송파구 올림픽로 300, 3410호',    items:[['f7',1]],           status:'취소',     pay:'신용카드',       daysAgo:11 }
 ];
 
 function seedOrders() {
   const count = db.prepare('SELECT COUNT(*) c FROM orders').get().c;
   if (count > 0) return;
   const getP = db.prepare('SELECT * FROM products WHERE id=?');
-  const insO = db.prepare(`INSERT INTO orders (order_no,user_id,buyer_name,buyer_phone,buyer_email,address,memo,subtotal,shipping,total,status,created_at)
-                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`);
-  const insI = db.prepare(`INSERT INTO order_items (order_id,product_id,brand,name,price,qty) VALUES (?,?,?,?,?,?)`);
+  const insO = db.prepare(`INSERT INTO orders (order_no,user_id,buyer_name,buyer_phone,buyer_email,address,memo,subtotal,shipping,total,status,payment_method,created_at)
+                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+  const insI = db.prepare(`INSERT INTO order_items (order_id,product_id,brand,name,price,qty,img,glyph,pal) VALUES (?,?,?,?,?,?,?,?,?)`);
   let seq = 1000;
   FAKE.forEach(o => {
     const ts = Date.now() - o.daysAgo * 86400000 - Math.floor(Math.random() * 36000000);
@@ -153,8 +163,8 @@ function seedOrders() {
     let subtotal = 0;
     const lines = o.items.map(([pid, qty]) => { const p = getP.get(pid); subtotal += p.price * qty; return [p, qty]; });
     const shipping = subtotal >= 5000000 ? 0 : 50000;
-    const info = insO.run(no, null, o.name, o.phone, o.email, o.addr, '', subtotal, shipping, subtotal + shipping, o.status, ts);
-    lines.forEach(([p, qty]) => insI.run(info.lastInsertRowid, p.id, p.brand, p.name, p.price, qty));
+    const info = insO.run(no, null, o.name, o.phone, o.email, o.addr, '', subtotal, shipping, subtotal + shipping, o.status, o.pay, ts);
+    lines.forEach(([p, qty]) => insI.run(info.lastInsertRowid, p.id, p.brand, p.name, p.price, qty, p.img, p.glyph, p.pal));
   });
   console.log(`[seed] test orders: ${FAKE.length}`);
 }

@@ -67,7 +67,8 @@ async function renderAccount(){
       body.innerHTML = orders.length ? orders.map(o=>`
         <div class="order-card">
           <div class="oc-head"><span>주문번호 ${o.order_no} · ${new Date(o.created_at).toLocaleDateString('ko-KR')}</span><span class="st">${o.status}</span></div>
-          ${o.items.map(i=>`<div class="oc-item"><div class="oi-thumb">${renderArt({pal:'sand',glyph:'bag',brand:i.brand,name:i.name},52,66)}</div><div style="flex:1"><div style="font-size:.7rem;letter-spacing:.1em;color:var(--gold-deep)">${i.brand}</div><div style="font-family:var(--serif)">${i.name}</div></div><div style="font-size:.86rem">×${i.qty} · ${won(i.price*i.qty)}</div></div>`).join('')}
+          ${o.items.map(i=>`<div class="oc-item"><div class="oi-thumb">${renderArt({id:i.product_id,img:i.img,glyph:i.glyph,pal:i.pal,brand:i.brand,name:i.name},80,100)}</div><div style="flex:1"><div style="font-size:.7rem;letter-spacing:.1em;color:var(--gold-deep)">${i.brand}</div><div style="font-family:var(--serif)">${i.name}</div></div><div style="font-size:.86rem">×${i.qty} · ${won(i.price*i.qty)}</div></div>`).join('')}
+          <div class="oc-meta"><span>결제방법 <b>${o.payment_method||'—'}</b></span><span>배송지 <b>${o.address}</b></span></div>
           <div style="text-align:right;border-top:1px solid var(--line);margin-top:10px;padding-top:10px;font-family:var(--serif);font-size:1.1rem">합계 ${won(o.total)}</div>
         </div>`).join('') : `<div class="empty-state"><p>주문 내역이 없습니다.</p><a class="btn green" href="/shop" style="margin-top:16px">쇼핑하러 가기</a></div>`;
     } else if(t==='wish'){

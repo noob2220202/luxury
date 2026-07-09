@@ -22,6 +22,7 @@
 
 <div id="adminRoot"><div class="admin-wrap"><p class="muted">불러오는 중…</p></div></div>
 
+<script src="/assets/js/products.js"></script>
 <script>
 /* ---------- 간단 API 헬퍼 (admin 전용) ---------- */
 async function api(path, opts={}){
@@ -35,7 +36,7 @@ async function api(path, opts={}){
   if(!res.ok) throw Object.assign(new Error((data&&data.error)||'error'),{status:res.status});
   return data;
 }
-const won = n => '₩'+Number(n).toLocaleString('ko-KR');
+// won() 은 products.js 에서 전역 제공
 const root = document.getElementById('adminRoot');
 let state = { status:'all', q:'' };
 
@@ -88,7 +89,7 @@ async function render(){
     </div>
 
     <table class="otable">
-      <thead><tr><th>주문번호</th><th>주문자</th><th>상품</th><th>금액</th><th>일시</th><th>상태 / 관리</th></tr></thead>
+      <thead><tr><th>주문번호</th><th>주문자 / 배송지</th><th>상품</th><th>결제금액 / 방법</th><th>일시</th><th>결제상태 / 관리</th></tr></thead>
       <tbody id="obody">${rows(orders, STAT)}</tbody>
     </table>
     ${orders.length?'':'<p class="muted" style="text-align:center;padding:40px 0">조건에 맞는 주문이 없습니다.</p>'}
@@ -101,13 +102,18 @@ async function render(){
   bindRows(STAT);
 }
 
+function itemThumb(i){
+  return renderArt({ id:i.product_id, img:i.img, glyph:i.glyph, pal:i.pal, brand:i.brand, name:i.name }, 96, 96);
+}
 function rows(orders, STAT){
   return orders.map(o=>`
     <tr data-row="${o.order_no}">
       <td class="ono">${o.order_no}</td>
-      <td class="obuyer"><b>${o.buyer_name}</b><span>${o.buyer_phone}</span><span>${o.buyer_email}</span></td>
-      <td class="oitems">${o.items.map(i=>`${i.brand} ${i.name} ×${i.qty}`).join('<br>')}<br><span style="color:var(--stone)">${o.address}</span></td>
-      <td class="oprice">${won(o.total)}</td>
+      <td class="obuyer"><b>${o.buyer_name}</b><span>${o.buyer_phone}</span><span>${o.buyer_email}</span><span class="oaddr">${o.address}</span></td>
+      <td class="oitems">
+        ${o.items.map(i=>`<div class="oitem"><span class="oitem-thumb">${itemThumb(i)}</span><span class="oitem-txt">${i.brand}<br><b>${i.name}</b> ×${i.qty}</span></div>`).join('')}
+      </td>
+      <td class="oprice">${won(o.total)}<span class="opay">${o.payment_method||'—'}</span></td>
       <td style="white-space:nowrap;color:var(--stone)">${new Date(o.created_at).toLocaleString('ko-KR',{dateStyle:'short',timeStyle:'short'})}</td>
       <td>
         <span class="badge ${o.status}" data-badge>${o.status}</span>

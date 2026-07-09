@@ -146,20 +146,23 @@ function makeOrderNo() {
   return 'LO' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + Math.floor(1000 + Math.random() * 9000);
 }
 
+const PAY_METHODS = ['무통장입금', '실시간 계좌이체', '신용카드', '카카오페이', '가상계좌'];
+
 app.post('/api/orders', (req, res) => {
-  const { name, phone, email, address, memo } = req.body || {};
+  const { name, phone, email, address, memo, paymentMethod } = req.body || {};
   if (!name || !phone || !/^\S+@\S+\.\S+$/.test(email || '') || !address)
     return res.status(400).json({ error: '주문 정보를 확인해 주세요.' });
+  const pay = PAY_METHODS.includes(paymentMethod) ? paymentMethod : '무통장입금';
   const detail = cartDetailed(req);
   if (!detail.items.length) return res.status(400).json({ error: '장바구니가 비어 있습니다.' });
 
   const no = makeOrderNo();
   const tx = db.transaction(() => {
-    const info = db.prepare(`INSERT INTO orders (order_no,user_id,buyer_name,buyer_phone,buyer_email,address,memo,subtotal,shipping,total,status,created_at)
-                             VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`)
-      .run(no, req.session.userId || null, name, phone, email, address, memo || '', detail.subtotal, detail.shipping, detail.total, '결제대기', Date.now());
-    const insI = db.prepare('INSERT INTO order_items (order_id,product_id,brand,name,price,qty) VALUES (?,?,?,?,?,?)');
-    detail.items.forEach(i => insI.run(info.lastInsertRowid, i.id, i.brand, i.name, i.price, i.qty));
+    const info = db.prepare(`INSERT INTO orders (order_no,user_id,buyer_name,buyer_phone,buyer_email,address,memo,subtotal,shipping,total,status,payment_method,created_at)
+                             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+      .run(no, req.session.userId || null, name, phone, email, address, memo || '', detail.subtotal, detail.shipping, detail.total, '결제대기', pay, Date.now());
+    const insI = db.prepare('INSERT INTO order_items (order_id,product_id,brand,name,price,qty,img,glyph,pal) VALUES (?,?,?,?,?,?,?,?,?)');
+    detail.items.forEach(i => insI.run(info.lastInsertRowid, i.id, i.brand, i.name, i.price, i.qty, i.img, i.glyph, i.pal));
     return info.lastInsertRowid;
   });
   tx();
@@ -169,6 +172,13 @@ app.post('/api/orders', (req, res) => {
 
 function orderWithItems(row) {
   row.items = db.prepare('SELECT * FROM order_items WHERE order_id=?').all(row.id);
+  // 구버전 주문(스냅샷 이미지 없음)은 현재 상품 정보로 보완
+  row.items.forEach(it => {
+    if (!it.img || !it.glyph) {
+      const p = q.productById.get(it.product_id);
+      if (p) { it.img = it.img || p.img; it.glyph = it.glyph || p.glyph; it.pal = it.pal || p.pal; }
+    }
+  });
   return row;
 }
 
